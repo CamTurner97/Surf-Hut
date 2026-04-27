@@ -60,6 +60,12 @@ uri = "file://attached_assets/beach_images/freshwater.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "2effD8WeZJZGfk9Xah8U3"
+uri = "file://artifacts/surf-hut/assets/images/icon.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "RUt91w54uec-oKYm6GGor"
 uri = "file://attached_assets/stock_images/queenscliff.jpg"

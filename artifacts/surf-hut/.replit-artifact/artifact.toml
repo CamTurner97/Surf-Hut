@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "Surf Hut"
+version = "1.0.0"
+id = "artifacts/surf-hut"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 18783
+
+[services.development]
+run = "pnpm --filter @workspace/surf-hut run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/surf-hut", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/surf-hut", "run", "serve" ]
+
+[services.env]
+PORT = "18783"
+BASE_PATH = "/"
