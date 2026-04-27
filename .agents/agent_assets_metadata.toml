@@ -1,0 +1,241 @@
+uploads = []
+
+[[generated]]
+id = "AyHAFKSXB7E0n5VWiixG2"
+uri = "file://attached_assets/beach_images/palm-beach.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "yrYzlJQ239A2_kixNkvPV"
+uri = "file://attached_assets/beach_images/avalon.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ghxHB76-aVamCDoJUJOdB"
+uri = "file://attached_assets/beach_images/newport.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "UUgAPrs6OeckpybjQo5mx"
+uri = "file://attached_assets/beach_images/north-narrabeen.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "oGlgZKFuYHI7veFu87C80"
+uri = "file://attached_assets/beach_images/collaroy.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "A5ArkC9T-NqQXeHayEOM3"
+uri = "file://attached_assets/beach_images/long-reef.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "yxRcEl0NBIuiydpT3QtuV"
+uri = "file://attached_assets/beach_images/dee-why.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "9tCAI9P76SIwCc2f-mbBF"
+uri = "file://attached_assets/beach_images/north-curl-curl.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "hIpuAbYXQCU1nPFGGOxvf"
+uri = "file://attached_assets/beach_images/south-curl-curl.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "a2lcLzot7bY77Ms-58_cn"
+uri = "file://attached_assets/beach_images/freshwater.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "RUt91w54uec-oKYm6GGor"
+uri = "file://attached_assets/stock_images/queenscliff.jpg"
+type = "image"
+title = "Queenscliff beach Manly Sydney aerial coastline"
+
+[[outputs]]
+id = "Ytr-n2hZ41q6uamRuTqfm"
+uri = "file://attached_assets/stock_images/north-steyne.jpg"
+type = "image"
+title = "Manly beach Sydney aerial Norfolk pines promenade"
+
+[[outputs]]
+id = "ZlB8JYDDDvlCvsG9mvT5-"
+uri = "file://attached_assets/stock_images/south-steyne.jpg"
+type = "image"
+title = "Manly beach Sydney southern end Cabbage Tree Bay aerial"
+
+[[outputs]]
+id = "72cU5biaeiGTFEAVzT_4C"
+uri = "file://attached_assets/stock_images/bondi.jpg"
+type = "image"
+title = "Bondi Beach Sydney aerial pavilion ocean pool"
+
+[[outputs]]
+id = "y-osWLWFJ_VTvnDE8hb6U"
+uri = "file://attached_assets/stock_images/tamarama.jpg"
+type = "image"
+title = "Tamarama Beach Sydney aerial small dramatic cliffs"
+
+[[outputs]]
+id = "JN1Rn5dLzTH9oHa2jdkam"
+uri = "file://attached_assets/stock_images/bronte.jpg"
+type = "image"
+title = "Bronte Beach Sydney aerial ocean pool grassy park"
+
+[[outputs]]
+id = "wGgTDptD750JAEDRho9vz"
+uri = "file://attached_assets/stock_images/maroubra.jpg"
+type = "image"
+title = "Maroubra Beach Sydney aerial long sandy beach surf"
+
+[[outputs]]
+id = "aLJWSCCKSZbxQu3XCOXEB"
+uri = "file://attached_assets/stock_images/wanda.jpg"
+type = "image"
+title = "Wanda Beach Cronulla Sydney aerial sand dunes"
+
+[[outputs]]
+id = "XlD-oiCw-VVkJUbM-T-YK"
+uri = "file://attached_assets/stock_images/north-cronulla.jpg"
+type = "image"
+title = "North Cronulla Beach Sydney aerial esplanade"
+
+[[outputs]]
+id = "Ghj1HR9KWIqo7XsRop7UQ"
+uri = "file://attached_assets/stock_images/cronulla-point.jpg"
+type = "image"
+title = "Cronulla Point Sydney rocky point break aerial waves"
+
+[[outputs]]
+id = "DDzzzTcawJttSyIo3HjtW"
+uri = "file://attached_assets/beach_images/palm-beach.png"
+type = "image"
+title = "1. Palm Beach (illustrated)"
+
+[[outputs]]
+id = "U_O68AUNWfsnj6lOFrmF4"
+uri = "file://attached_assets/beach_images/avalon.png"
+type = "image"
+title = "2. Avalon (illustrated)"
+
+[[outputs]]
+id = "iJMIInmuy6W4inoToJ_Uh"
+uri = "file://attached_assets/beach_images/newport.png"
+type = "image"
+title = "3. Newport (illustrated)"
+
+[[outputs]]
+id = "IpkYLQTab0pqZYZuYez1p"
+uri = "file://attached_assets/beach_images/north-narrabeen.png"
+type = "image"
+title = "4. North Narrabeen (illustrated)"
+
+[[outputs]]
+id = "lV1WLvYDeZPwlNoyURx0s"
+uri = "file://attached_assets/beach_images/collaroy.png"
+type = "image"
+title = "5. Collaroy (illustrated)"
+
+[[outputs]]
+id = "1JoIxh0tsYhRmj549Xsue"
+uri = "file://attached_assets/beach_images/long-reef.png"
+type = "image"
+title = "6. Long Reef (illustrated)"
+
+[[outputs]]
+id = "zsB6OB5WWwxHIIaMe22s7"
+uri = "file://attached_assets/beach_images/dee-why.png"
+type = "image"
+title = "7. Dee Why (illustrated)"
+
+[[outputs]]
+id = "xVy6gvNg71QjzNX1iTUNK"
+uri = "file://attached_assets/beach_images/north-curl-curl.png"
+type = "image"
+title = "8. North Curl Curl (illustrated)"
+
+[[outputs]]
+id = "hLaPvTUP1iYCBMWxPvtfG"
+uri = "file://attached_assets/beach_images/south-curl-curl.png"
+type = "image"
+title = "9. South Curl Curl (illustrated)"
+
+[[outputs]]
+id = "KnO7lwDTih_aeoFAH2pcq"
+uri = "file://attached_assets/beach_images/freshwater.png"
+type = "image"
+title = "10. Freshwater (illustrated)"
+
+[[outputs]]
+id = "SHwzIykfxeR9eX_wrUVS-"
+uri = "file://attached_assets/beach_images/queenscliff.png"
+type = "image"
+title = "11. Queenscliff (stock photo)"
+
+[[outputs]]
+id = "vtYyD5wBX90ujASfAcpKW"
+uri = "file://attached_assets/beach_images/north-steyne.png"
+type = "image"
+title = "12. North Steyne / Manly (stock photo)"
+
+[[outputs]]
+id = "Ar_zyiNqRNeRFJhtMeYE2"
+uri = "file://attached_assets/beach_images/south-steyne.png"
+type = "image"
+title = "13. South Steyne / Manly (stock photo)"
+
+[[outputs]]
+id = "9PBIlOAHp7J1DCIKycJmu"
+uri = "file://attached_assets/beach_images/bondi.png"
+type = "image"
+title = "14. Bondi (stock photo)"
+
+[[outputs]]
+id = "wz_qgPDNzIHwLGttCMkX0"
+uri = "file://attached_assets/beach_images/tamarama.png"
+type = "image"
+title = "15. Tamarama (stock photo)"
+
+[[outputs]]
+id = "7TJ25HlJ0RPo_ikHDIROw"
+uri = "file://attached_assets/beach_images/bronte.png"
+type = "image"
+title = "16. Bronte (stock photo)"
+
+[[outputs]]
+id = "Mmg0FgdZunokvoKS5mbN2"
+uri = "file://attached_assets/beach_images/maroubra.png"
+type = "image"
+title = "17. Maroubra (stock photo)"
+
+[[outputs]]
+id = "wcjczHHp3Ssd3hLaMYUn7"
+uri = "file://attached_assets/beach_images/wanda.png"
+type = "image"
+title = "18. Wanda (stock photo)"
+
+[[outputs]]
+id = "D_Fl8icBeKwBVcdGNO2LD"
+uri = "file://attached_assets/beach_images/north-cronulla.png"
+type = "image"
+title = "19. North Cronulla (stock photo)"
+
+[[outputs]]
+id = "5fsuM-95X0_qvjp5J97Vd"
+uri = "file://attached_assets/beach_images/cronulla-point.png"
+type = "image"
+title = "20. Cronulla Point (stock photo)"

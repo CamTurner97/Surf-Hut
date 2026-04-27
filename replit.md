@@ -1,27 +1,160 @@
-# Workspace
+# Surf Hut
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+A mobile-first surf spot finder for Sydney. Users open the app and immediately see a map of Sydney's coastline with ~20 beach pins colour-coded by current surf quality. Tapping a pin reveals a full surf and weather report. Designed for the Sydney surfing community of all ages, with a minimalist, efficient feel.
+
+**Tagline (working):** "Where's it firing?"
+
+**Brand vibe:** Efficient and minimalistic. Restrained palette of sunset orange and teal with cream and deep navy accents. Not overly colourful.
+
+## Build Order
+
+1. Android (primary)
+2. iOS
+3. Web
+
+All three from a single React Native / Expo codebase.
+
+## MVP Scope (v1)
+
+- Map of Sydney with ~20 beach pins, colour-coded by surf score
+- Tap pin → bottom sheet quick summary
+- Full beach detail screen: surf report, weather, tide, 24h forecast
+- List view as alternative to the map
+- Search/filter beaches by name
+- Favourites (local-only, AsyncStorage)
+- Settings (units, about, credits)
+- Pull-to-refresh
+- Offline cache of last fetched report per beach
+- 70% unit-test coverage on backend and mobile
+
+## Out of Scope (v2+)
+
+- User accounts (Clerk)
+- Reviews of beaches, cafés, surfboard hire
+- Push notifications when favourite beaches hit good conditions
+- Webcam integration
+- Crowd reports / social sharing
+
+## Architecture
+
+```
+Expo mobile app
+   │ HTTPS
+   ▼
+Express API (artifacts/api-server)
+   │
+   ├── PostgreSQL (beach catalogue + report cache)
+   └── Open-Meteo Marine + Forecast APIs (no key required)
+```
+
+The backend caches Open-Meteo responses (30-min TTL) and computes a 1–10 surf "score" per beach so the algorithm can be tuned without app updates.
 
 ## Stack
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+| Layer | Tool |
+|---|---|
+| Monorepo | pnpm workspaces |
+| Mobile | React Native via Expo |
+| Map | Mapbox (`@rnmapbox/maps`) — requires user-supplied access token |
+| Mobile state | TanStack Query |
+| Local storage | AsyncStorage |
+| Backend | Express 5 + TypeScript (existing `artifacts/api-server`) |
+| Database | PostgreSQL + Drizzle ORM |
+| API contract | OpenAPI + Orval codegen → `@workspace/api-client-react` |
+| Validation | Zod |
+| Surf data | Open-Meteo Marine API (free, no key) |
+| Weather data | Open-Meteo Forecast API (free, no key) |
+| Backend tests | Vitest, ≥70% coverage gate |
+| Mobile tests | Jest + React Native Testing Library, ≥70% coverage gate |
 
-## Key Commands
+## Data Model
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+### `beaches`
+- `id` (string, PK) — slug, e.g. `bondi`
+- `name`, `region`, `latitude`, `longitude`
+- `facing_direction` — N/NE/E/SE/S; used by scoring
+- `description`, `hero_image_url`
+- `ideal_conditions` (json) — preferred swell direction, wind direction, wave-height range
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+### `surf_reports` (cache)
+- `beach_id` (FK), `fetched_at`, `payload` (raw Open-Meteo), `score` (1–10)
+
+## API Endpoints (v1)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/beaches` | All beaches with current score |
+| GET | `/api/beaches/:id` | Single beach with full report |
+| GET | `/api/healthz` | Health check |
+
+## Surf Score (v1, simple weighted formula)
+
+- 40% wave height in beach's ideal range
+- 30% wind direction matches beach's offshore wind
+- 20% wind speed below 25 km/h
+- 10% swell period ≥ 8s
+
+Tuneable per beach via `ideal_conditions`.
+
+## Seed Beach List (20 spots)
+
+**Northern Beaches:** Palm Beach, Avalon, Newport, North Narrabeen, Collaroy, Long Reef, Dee Why, North Curl Curl, South Curl Curl, Freshwater, Queenscliff, North Steyne (Manly), South Steyne (Manly).
+**Eastern Suburbs:** Bondi, Tamarama, Bronte, Maroubra.
+**Cronulla:** Wanda, North Cronulla, Cronulla Point.
+
+Hero images stored in `attached_assets/beach_images/<slug>.png`.
+
+## Build Process
+
+The user wants to review and tweak after every task. Each task ends with a preview/screenshot and a pause for feedback before the next task begins.
+
+## Task Plan
+
+### Phase 0 — Setup & Data
+- T01 Scaffold Expo mobile app with navigation, theme, base screens
+- T02 Curate seed beach list with coordinates, ideal conditions (drafted; ready)
+- T03 Generate hero images per beach (done; in `attached_assets/beach_images/`)
+
+### Phase 1 — Backend
+- T04 OpenAPI spec for `/api/beaches` and `/api/beaches/:id`
+- T05 DB schema (`beaches`, `surf_reports`) and seed
+- T06 Open-Meteo client wrapper with 30-min cache
+- T07 Surf scoring algorithm
+- T08 Endpoint handlers with Zod validation
+
+### Phase 2 — Mobile Core
+- T09 Mapbox setup with user-supplied token
+- T10 Map screen with pins and bottom sheet
+- T11 Beach detail screen (hero, surf, weather, tide, 24h strip)
+- T12 List view + map/list toggle
+- T13 Pull-to-refresh
+- T14 Search/filter
+
+### Phase 3 — Local Features
+- T15 Favourites screen + AsyncStorage
+- T16 Settings screen (units, about, credits)
+- T17 Offline cache with stale-data indicator
+
+### Phase 4 — Polish & Ship
+- T18 Empty / error / loading states
+- T19 Accessibility pass (contrast, touch targets, screen-reader labels)
+- T20 App icon, splash, metadata
+- T21 Android APK build and on-device test
+- T22 Deploy backend; dry run on real device
+
+### Tests (alongside each phase)
+- Backend Vitest setup, 70% gate enforced in CI
+- Mobile Jest + RNTL setup, 70% gate enforced in CI
+
+## External Accounts Needed
+
+- **Mapbox** — public access token (free tier). Will prompt the user during T09.
+- Open-Meteo: no account/key required.
+
+## Notes
+
+- pnpm workspace monorepo using TypeScript (Node 24, TS 5.9, Express 5, Drizzle, Zod, Orval).
+- Existing artifacts: `api-server` (Express), `mockup-sandbox` (design playground).
+- See the `pnpm-workspace` skill for workspace structure.
