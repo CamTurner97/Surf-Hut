@@ -51,3 +51,64 @@ export interface BeachListResponse {
   beaches: Beach[];
   count: number;
 }
+
+/**
+ * Human-readable label derived from the numeric score
+ */
+export type SurfScoreLabel =
+  (typeof SurfScoreLabel)[keyof typeof SurfScoreLabel];
+
+export const SurfScoreLabel = {
+  Flat: "Flat",
+  Poor: "Poor",
+  Fair: "Fair",
+  Good: "Good",
+  Epic: "Epic",
+} as const;
+
+/**
+ * Wind direction relative to the beach facing
+ */
+export type SurfReportWindRelative =
+  (typeof SurfReportWindRelative)[keyof typeof SurfReportWindRelative];
+
+export const SurfReportWindRelative = {
+  offshore: "offshore",
+  "cross-shore": "cross-shore",
+  onshore: "onshore",
+} as const;
+
+export interface SurfReport {
+  beachId: string;
+  /**
+   * Overall surf score for this beach right now
+   * @minimum 1
+   * @maximum 10
+   */
+  score: number;
+  scoreLabel: SurfScoreLabel;
+  /** Significant wave height in metres */
+  waveHeightM: number;
+  /** Wave period in seconds */
+  wavePeriodS: number;
+  /** Direction waves are coming from, degrees from north */
+  waveDirectionDeg: number;
+  windSpeedKmh: number;
+  /** Direction wind is coming from, degrees from north */
+  windDirectionDeg: number;
+  /** Wind direction relative to the beach facing */
+  windRelative: SurfReportWindRelative;
+  airTemperatureC?: number | null;
+  waterTemperatureC?: number | null;
+  /** Sea surface height above mean sea level (proxy for tide) */
+  seaLevelM?: number | null;
+  /** When the upstream data was fetched */
+  fetchedAt: string;
+  /** True if the response was served from cache */
+  cached: boolean;
+}
+
+export interface ErrorResponse {
+  error: string;
+  message: string;
+}

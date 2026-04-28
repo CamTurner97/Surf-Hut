@@ -39,6 +39,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BeachListResponse"
+  /beaches/{beachId}/report:
+    get:
+      operationId: getBeachReport
+      tags: [beaches]
+      summary: Get the latest surf, weather, and tide report for a beach
+      description: Returns cached Open-Meteo Marine + Weather data and a 1-10 surf score. Cache TTL is 30 minutes.
+      parameters:
+        - name: beachId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Beach slug
+      responses:
+        "200":
+          description: Surf report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurfReport"
+        "404":
+          description: Beach not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -108,3 +134,92 @@ components:
       required:
         - beaches
         - count
+    SurfScoreLabel:
+      type: string
+      enum:
+        - Flat
+        - Poor
+        - Fair
+        - Good
+        - Epic
+      description: Human-readable label derived from the numeric score
+    SurfReport:
+      type: object
+      properties:
+        beachId:
+          type: string
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Overall surf score for this beach right now
+        scoreLabel:
+          $ref: "#/components/schemas/SurfScoreLabel"
+        waveHeightM:
+          type: number
+          format: double
+          description: Significant wave height in metres
+        wavePeriodS:
+          type: number
+          format: double
+          description: Wave period in seconds
+        waveDirectionDeg:
+          type: number
+          format: double
+          description: Direction waves are coming from, degrees from north
+        windSpeedKmh:
+          type: number
+          format: double
+        windDirectionDeg:
+          type: number
+          format: double
+          description: Direction wind is coming from, degrees from north
+        windRelative:
+          type: string
+          enum:
+            - offshore
+            - cross-shore
+            - onshore
+          description: Wind direction relative to the beach facing
+        airTemperatureC:
+          type: number
+          format: double
+          nullable: true
+        waterTemperatureC:
+          type: number
+          format: double
+          nullable: true
+        seaLevelM:
+          type: number
+          format: double
+          nullable: true
+          description: Sea surface height above mean sea level (proxy for tide)
+        fetchedAt:
+          type: string
+          format: date-time
+          description: When the upstream data was fetched
+        cached:
+          type: boolean
+          description: True if the response was served from cache
+      required:
+        - beachId
+        - score
+        - scoreLabel
+        - waveHeightM
+        - wavePeriodS
+        - waveDirectionDeg
+        - windSpeedKmh
+        - windDirectionDeg
+        - windRelative
+        - fetchedAt
+        - cached
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message

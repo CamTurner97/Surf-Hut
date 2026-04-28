@@ -13,7 +13,12 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { BeachListResponse, HealthStatus } from "./api.schemas";
+import type {
+  BeachListResponse,
+  ErrorResponse,
+  HealthStatus,
+  SurfReport,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
 import type { ErrorType } from "../custom-fetch";
@@ -168,6 +173,94 @@ export function useListBeaches<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getListBeachesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns cached Open-Meteo Marine + Weather data and a 1-10 surf score. Cache TTL is 30 minutes.
+ * @summary Get the latest surf, weather, and tide report for a beach
+ */
+export const getGetBeachReportUrl = (beachId: string) => {
+  return `/api/beaches/${beachId}/report`;
+};
+
+export const getBeachReport = async (
+  beachId: string,
+  options?: RequestInit,
+): Promise<SurfReport> => {
+  return customFetch<SurfReport>(getGetBeachReportUrl(beachId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBeachReportQueryKey = (beachId: string) => {
+  return [`/api/beaches/${beachId}/report`] as const;
+};
+
+export const getGetBeachReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBeachReport>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  beachId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBeachReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBeachReportQueryKey(beachId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBeachReport>>> = ({
+    signal,
+  }) => getBeachReport(beachId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!beachId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBeachReport>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBeachReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBeachReport>>
+>;
+export type GetBeachReportQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get the latest surf, weather, and tide report for a beach
+ */
+
+export function useGetBeachReport<
+  TData = Awaited<ReturnType<typeof getBeachReport>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  beachId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBeachReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBeachReportQueryOptions(beachId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

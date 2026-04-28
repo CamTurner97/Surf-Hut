@@ -8,6 +8,10 @@
 
 export * from "./beach";
 export * from "./beachListResponse";
+export * from "./errorResponse";
 export * from "./facingDirection";
 export * from "./healthStatus";
 export * from "./region";
+export * from "./surfReport";
+export * from "./surfReportWindRelative";
+export * from "./surfScoreLabel";

@@ -40,3 +40,45 @@ export const ListBeachesResponse = zod.object({
   ),
   count: zod.number(),
 });
+
+/**
+ * Returns cached Open-Meteo Marine + Weather data and a 1-10 surf score. Cache TTL is 30 minutes.
+ * @summary Get the latest surf, weather, and tide report for a beach
+ */
+export const GetBeachReportParams = zod.object({
+  beachId: zod.coerce.string().describe("Beach slug"),
+});
+
+export const getBeachReportResponseScoreMax = 10;
+
+export const GetBeachReportResponse = zod.object({
+  beachId: zod.string(),
+  score: zod
+    .number()
+    .min(1)
+    .max(getBeachReportResponseScoreMax)
+    .describe("Overall surf score for this beach right now"),
+  scoreLabel: zod
+    .enum(["Flat", "Poor", "Fair", "Good", "Epic"])
+    .describe("Human-readable label derived from the numeric score"),
+  waveHeightM: zod.number().describe("Significant wave height in metres"),
+  wavePeriodS: zod.number().describe("Wave period in seconds"),
+  waveDirectionDeg: zod
+    .number()
+    .describe("Direction waves are coming from, degrees from north"),
+  windSpeedKmh: zod.number(),
+  windDirectionDeg: zod
+    .number()
+    .describe("Direction wind is coming from, degrees from north"),
+  windRelative: zod
+    .enum(["offshore", "cross-shore", "onshore"])
+    .describe("Wind direction relative to the beach facing"),
+  airTemperatureC: zod.number().nullish(),
+  waterTemperatureC: zod.number().nullish(),
+  seaLevelM: zod
+    .number()
+    .nullish()
+    .describe("Sea surface height above mean sea level (proxy for tide)"),
+  fetchedAt: zod.coerce.date().describe("When the upstream data was fetched"),
+  cached: zod.boolean().describe("True if the response was served from cache"),
+});
