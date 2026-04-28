@@ -4,6 +4,7 @@ import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
 import { Platform, StyleSheet, Text } from "react-native";
 
+import { GlobeIcon, HeartOutlineIcon } from "@/components/TabIcons";
 import { useColors } from "@/hooks/useColors";
 
 function NativeTabLayout() {
@@ -32,6 +33,14 @@ function NativeTabLayout() {
 function makeIcon(glyph: string) {
   return ({ color }: { color: string }) => (
     <Text style={{ fontSize: 22, color, lineHeight: 24 }}>{glyph}</Text>
+  );
+}
+
+function makeSvgIcon(
+  Component: React.ComponentType<{ color: string; size?: number }>,
+) {
+  return ({ color }: { color: string }) => (
+    <Component color={color} size={22} />
   );
 }
 
@@ -75,7 +84,7 @@ function ClassicTabLayout() {
         options={{
           title: "Surf Hut",
           tabBarLabel: "Map",
-          tabBarIcon: makeIcon("◉"),
+          tabBarIcon: makeSvgIcon(GlobeIcon),
         }}
       />
       <Tabs.Screen
@@ -91,7 +100,7 @@ function ClassicTabLayout() {
         options={{
           title: "Favourites",
           tabBarLabel: "Favourites",
-          tabBarIcon: makeIcon("♥"),
+          tabBarIcon: makeSvgIcon(HeartOutlineIcon),
         }}
       />
       <Tabs.Screen

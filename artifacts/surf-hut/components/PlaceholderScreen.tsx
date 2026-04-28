@@ -2,19 +2,18 @@ import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { GlobeIcon, HeartOutlineIcon } from "@/components/TabIcons";
 import { useColors } from "@/hooks/useColors";
 
 const GLYPHS = {
-  map: "◉",
   list: "☰",
-  heart: "♥",
   settings: "⚙",
 } as const;
 
-type GlyphKey = keyof typeof GLYPHS;
+type IconKey = "map" | "heart" | keyof typeof GLYPHS;
 
 type PlaceholderScreenProps = {
-  icon: GlyphKey;
+  icon: IconKey;
   title: string;
   body: string;
   accent?: "primary" | "accent";
@@ -61,9 +60,15 @@ export function PlaceholderScreen({
               },
             ]}
           >
-            <Text style={[styles.iconGlyph, { color: tint }]}>
-              {GLYPHS[icon]}
-            </Text>
+            {icon === "map" ? (
+              <GlobeIcon color={tint} size={40} />
+            ) : icon === "heart" ? (
+              <HeartOutlineIcon color={tint} size={40} />
+            ) : (
+              <Text style={[styles.iconGlyph, { color: tint }]}>
+                {GLYPHS[icon]}
+              </Text>
+            )}
           </View>
           <Text style={[styles.title, { color: colors.foreground }]}>
             {title}
