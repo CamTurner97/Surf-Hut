@@ -1,13 +1,13 @@
-import { BlurView } from "expo-blur";
+import { Feather } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
-import { SymbolView } from "expo-symbols";
-import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+
+type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
 function NativeTabLayout() {
   return (
@@ -32,11 +32,14 @@ function NativeTabLayout() {
   );
 }
 
+function makeIcon(name: FeatherName) {
+  return ({ color }: { color: string }) => (
+    <Feather name={name} size={22} color={color} />
+  );
+}
+
 function ClassicTabLayout() {
   const colors = useColors();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
   return (
@@ -62,28 +65,12 @@ function ClassicTabLayout() {
           fontSize: 11,
         },
         tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.background,
+          backgroundColor: colors.background,
           borderTopWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
           borderTopColor: colors.border,
           elevation: 0,
           ...(isWeb ? { height: 84 } : {}),
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.background },
-              ]}
-            />
-          ) : null,
       }}
     >
       <Tabs.Screen
@@ -91,12 +78,7 @@ function ClassicTabLayout() {
         options={{
           title: "Surf Hut",
           tabBarLabel: "Map",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="map" tintColor={color} size={24} />
-            ) : (
-              <Feather name="map" size={22} color={color} />
-            ),
+          tabBarIcon: makeIcon("map"),
         }}
       />
       <Tabs.Screen
@@ -104,12 +86,7 @@ function ClassicTabLayout() {
         options={{
           title: "Beaches",
           tabBarLabel: "Beaches",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="list.bullet" tintColor={color} size={24} />
-            ) : (
-              <Feather name="list" size={22} color={color} />
-            ),
+          tabBarIcon: makeIcon("list"),
         }}
       />
       <Tabs.Screen
@@ -117,12 +94,7 @@ function ClassicTabLayout() {
         options={{
           title: "Favourites",
           tabBarLabel: "Favourites",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="heart" tintColor={color} size={24} />
-            ) : (
-              <Feather name="heart" size={22} color={color} />
-            ),
+          tabBarIcon: makeIcon("heart"),
         }}
       />
       <Tabs.Screen
@@ -130,12 +102,7 @@ function ClassicTabLayout() {
         options={{
           title: "Settings",
           tabBarLabel: "Settings",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="gearshape" tintColor={color} size={24} />
-            ) : (
-              <Feather name="settings" size={22} color={color} />
-            ),
+          tabBarIcon: makeIcon("settings"),
         }}
       />
     </Tabs>
