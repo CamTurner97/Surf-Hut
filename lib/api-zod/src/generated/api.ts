@@ -14,3 +14,29 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns the catalogue of Sydney surf beaches
+ * @summary List all beaches
+ */
+export const ListBeachesResponse = zod.object({
+  beaches: zod.array(
+    zod.object({
+      id: zod.string().describe('Stable slug, e.g. \"bondi\"'),
+      name: zod.string(),
+      region: zod
+        .enum(["northern-beaches", "eastern-suburbs", "cronulla"])
+        .describe("Sydney coastal region grouping"),
+      latitude: zod.number(),
+      longitude: zod.number(),
+      facingDirection: zod
+        .enum(["N", "NE", "E", "SE", "S"])
+        .describe("Compass direction the beach faces (open ocean side)"),
+      description: zod.string(),
+      heroImageUrl: zod
+        .string()
+        .describe("Relative path to the beach hero image"),
+    }),
+  ),
+  count: zod.number(),
+});

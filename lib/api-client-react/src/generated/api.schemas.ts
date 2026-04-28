@@ -8,3 +8,46 @@
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * Sydney coastal region grouping
+ */
+export type Region = (typeof Region)[keyof typeof Region];
+
+export const Region = {
+  "northern-beaches": "northern-beaches",
+  "eastern-suburbs": "eastern-suburbs",
+  cronulla: "cronulla",
+} as const;
+
+/**
+ * Compass direction the beach faces (open ocean side)
+ */
+export type FacingDirection =
+  (typeof FacingDirection)[keyof typeof FacingDirection];
+
+export const FacingDirection = {
+  N: "N",
+  NE: "NE",
+  E: "E",
+  SE: "SE",
+  S: "S",
+} as const;
+
+export interface Beach {
+  /** Stable slug, e.g. "bondi" */
+  id: string;
+  name: string;
+  region: Region;
+  latitude: number;
+  longitude: number;
+  facingDirection: FacingDirection;
+  description: string;
+  /** Relative path to the beach hero image */
+  heroImageUrl: string;
+}
+
+export interface BeachListResponse {
+  beaches: Beach[];
+  count: number;
+}

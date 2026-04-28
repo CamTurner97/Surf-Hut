@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./beach";
+export * from "./beachListResponse";
+export * from "./facingDirection";
 export * from "./healthStatus";
+export * from "./region";

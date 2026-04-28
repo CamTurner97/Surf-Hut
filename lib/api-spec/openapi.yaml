@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: beaches
+    description: Beach catalogue and surf reports
 paths:
   /healthz:
     get:
@@ -24,6 +26,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /beaches:
+    get:
+      operationId: listBeaches
+      tags: [beaches]
+      summary: List all beaches
+      description: Returns the catalogue of Sydney surf beaches
+      responses:
+        "200":
+          description: Beach list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BeachListResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +48,63 @@ components:
           type: string
       required:
         - status
-
+    Region:
+      type: string
+      enum:
+        - northern-beaches
+        - eastern-suburbs
+        - cronulla
+      description: Sydney coastal region grouping
+    FacingDirection:
+      type: string
+      enum:
+        - N
+        - NE
+        - E
+        - SE
+        - S
+      description: Compass direction the beach faces (open ocean side)
+    Beach:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Stable slug, e.g. "bondi"
+        name:
+          type: string
+        region:
+          $ref: "#/components/schemas/Region"
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        facingDirection:
+          $ref: "#/components/schemas/FacingDirection"
+        description:
+          type: string
+        heroImageUrl:
+          type: string
+          description: Relative path to the beach hero image
+      required:
+        - id
+        - name
+        - region
+        - latitude
+        - longitude
+        - facingDirection
+        - description
+        - heroImageUrl
+    BeachListResponse:
+      type: object
+      properties:
+        beaches:
+          type: array
+          items:
+            $ref: "#/components/schemas/Beach"
+        count:
+          type: integer
+      required:
+        - beaches
+        - count

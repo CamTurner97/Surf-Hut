@@ -13,7 +13,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type { BeachListResponse, HealthStatus } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
 import type { ErrorType } from "../custom-fetch";
@@ -92,6 +92,82 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns the catalogue of Sydney surf beaches
+ * @summary List all beaches
+ */
+export const getListBeachesUrl = () => {
+  return `/api/beaches`;
+};
+
+export const listBeaches = async (
+  options?: RequestInit,
+): Promise<BeachListResponse> => {
+  return customFetch<BeachListResponse>(getListBeachesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListBeachesQueryKey = () => {
+  return [`/api/beaches`] as const;
+};
+
+export const getListBeachesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listBeaches>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBeaches>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListBeachesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listBeaches>>> = ({
+    signal,
+  }) => listBeaches({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listBeaches>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListBeachesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listBeaches>>
+>;
+export type ListBeachesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all beaches
+ */
+
+export function useListBeaches<
+  TData = Awaited<ReturnType<typeof listBeaches>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBeaches>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListBeachesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
