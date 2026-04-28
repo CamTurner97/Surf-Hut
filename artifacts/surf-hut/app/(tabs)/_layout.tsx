@@ -1,13 +1,10 @@
-import { Feather } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, Text } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
-
-type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
 function NativeTabLayout() {
   return (
@@ -32,9 +29,9 @@ function NativeTabLayout() {
   );
 }
 
-function makeIcon(name: FeatherName) {
+function makeIcon(glyph: string) {
   return ({ color }: { color: string }) => (
-    <Feather name={name} size={22} color={color} />
+    <Text style={{ fontSize: 22, color, lineHeight: 24 }}>{glyph}</Text>
   );
 }
 
@@ -78,7 +75,7 @@ function ClassicTabLayout() {
         options={{
           title: "Surf Hut",
           tabBarLabel: "Map",
-          tabBarIcon: makeIcon("map"),
+          tabBarIcon: makeIcon("◉"),
         }}
       />
       <Tabs.Screen
@@ -86,7 +83,7 @@ function ClassicTabLayout() {
         options={{
           title: "Beaches",
           tabBarLabel: "Beaches",
-          tabBarIcon: makeIcon("list"),
+          tabBarIcon: makeIcon("☰"),
         }}
       />
       <Tabs.Screen
@@ -94,7 +91,7 @@ function ClassicTabLayout() {
         options={{
           title: "Favourites",
           tabBarLabel: "Favourites",
-          tabBarIcon: makeIcon("heart"),
+          tabBarIcon: makeIcon("♥"),
         }}
       />
       <Tabs.Screen
@@ -102,7 +99,7 @@ function ClassicTabLayout() {
         options={{
           title: "Settings",
           tabBarLabel: "Settings",
-          tabBarIcon: makeIcon("settings"),
+          tabBarIcon: makeIcon("⚙"),
         }}
       />
     </Tabs>

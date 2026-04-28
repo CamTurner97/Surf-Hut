@@ -1,14 +1,20 @@
-import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 
-type IconName = React.ComponentProps<typeof Feather>["name"];
+const GLYPHS = {
+  map: "◉",
+  list: "☰",
+  heart: "♥",
+  settings: "⚙",
+} as const;
+
+type GlyphKey = keyof typeof GLYPHS;
 
 type PlaceholderScreenProps = {
-  icon: IconName;
+  icon: GlyphKey;
   title: string;
   body: string;
   accent?: "primary" | "accent";
@@ -55,7 +61,9 @@ export function PlaceholderScreen({
               },
             ]}
           >
-            <Feather name={icon} size={36} color={tint} />
+            <Text style={[styles.iconGlyph, { color: tint }]}>
+              {GLYPHS[icon]}
+            </Text>
           </View>
           <Text style={[styles.title, { color: colors.foreground }]}>
             {title}
@@ -97,6 +105,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 24,
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  iconGlyph: {
+    fontSize: 40,
+    lineHeight: 44,
   },
   title: {
     fontFamily: "Inter_600SemiBold",

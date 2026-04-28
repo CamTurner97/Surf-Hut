@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   Platform,
@@ -67,17 +66,17 @@ export default function SettingsTab() {
         </Section>
 
         <Section title="About" colors={colors}>
-          <InfoRow icon="info" label="Version" value="0.1.0 (preview)" colors={colors} />
+          <InfoRow glyph="i" label="Version" value="0.1.0 (preview)" colors={colors} />
           <Divider colors={colors} />
           <InfoRow
-            icon="cloud"
+            glyph="◐"
             label="Surf data"
             value="Open-Meteo Marine"
             colors={colors}
           />
           <Divider colors={colors} />
           <InfoRow
-            icon="map-pin"
+            glyph="◉"
             label="Region"
             value="Sydney, NSW"
             colors={colors}
@@ -221,12 +220,12 @@ function ToggleRow({
 }
 
 function InfoRow({
-  icon,
+  glyph,
   label,
   value,
   colors,
 }: {
-  icon: React.ComponentProps<typeof Feather>["name"];
+  glyph: string;
   label: string;
   value: string;
   colors: ColorPalette;
@@ -234,7 +233,9 @@ function InfoRow({
   return (
     <View style={styles.row}>
       <View style={styles.infoLeft}>
-        <Feather name={icon} size={16} color={colors.mutedForeground} />
+        <Text style={[styles.infoGlyph, { color: colors.mutedForeground }]}>
+          {glyph}
+        </Text>
         <Text style={[styles.rowLabel, { color: colors.foreground }]}>
           {label}
         </Text>
@@ -297,6 +298,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  infoGlyph: {
+    fontSize: 14,
+    width: 18,
+    textAlign: "center",
   },
   infoValue: {
     fontFamily: "Inter_500Medium",
