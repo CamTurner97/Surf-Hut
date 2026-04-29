@@ -158,3 +158,29 @@ The user wants to review and tweak after every task. Each task ends with a previ
 - pnpm workspace monorepo using TypeScript (Node 24, TS 5.9, Express 5, Drizzle, Zod, Orval).
 - Existing artifacts: `api-server` (Express), `mockup-sandbox` (design playground).
 - See the `pnpm-workspace` skill for workspace structure.
+
+## Git Workflow Rules (GitHub-connected project)
+
+**Hard rules — follow on every task:**
+
+- Never commit or push directly to `main`.
+- Every task starts on a fresh feature branch named `feature/<short-task-name>` (e.g. `feature/t06-image-route`).
+- Only implement the specific requested task. No drive-by refactors, no unrelated style/structural changes.
+- Before any commit: run the project's checks. Tests must pass.
+  - **Project mapping (pnpm monorepo):**
+    - `npm test` → `pnpm run test` once test scripts exist (Vitest backend, Jest mobile). Until then, `pnpm run typecheck`.
+    - `npm run lint` → not yet configured; treat as no-op until a lint script is added.
+- Commit messages: clear, specific, present tense. Example: `Add static image route for beach hero photos`.
+- Commit frequently in logical steps; keep PRs small, focused, and reviewable.
+- After pushing: open a PR on GitHub. Base = `main`, compare = the feature branch. PR description includes what changed and how it was tested.
+- Never commit secrets or API keys. (Replit Secrets and `.env` are gitignored — keep it that way.)
+- Never force-push unless the user explicitly asks for it.
+- Ask for clarification when requirements are unclear.
+- Prioritise correctness, safety, and maintainability over speed.
+
+**How this maps to Replit's environment:**
+
+- Git pane (left sidebar → Tools → Git) is the canonical place to create branches, switch branches, push, and pull.
+- Replit auto-commits at the end of every task. Those commits land on whatever branch is currently checked out, so the feature branch must be created **before** task work begins.
+- Agent does not push directly; the user clicks **Push** in the Git pane after a task is reviewed.
+- PRs are opened on github.com (or via the Git pane's PR shortcut).
