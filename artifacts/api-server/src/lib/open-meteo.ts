@@ -87,14 +87,14 @@ export async function fetchOpenMeteoSnapshot(
     fetchJson<WeatherResponse>(`${WEATHER_URL}?${weatherParams.toString()}`),
   ]);
 
-  const m = marine.current ?? {};
-  const w = weather.current ?? {};
+  const m = marine.current;
+  const w = weather.current;
 
-  const waveHeightM = pickNumber(m.wave_height);
-  const wavePeriodS = pickNumber(m.wave_period);
-  const waveDirectionDeg = pickNumber(m.wave_direction);
-  const windSpeedKmh = pickNumber(w.wind_speed_10m);
-  const windDirectionDeg = pickNumber(w.wind_direction_10m);
+  const waveHeightM = pickNumber(m?.wave_height);
+  const wavePeriodS = pickNumber(m?.wave_period);
+  const waveDirectionDeg = pickNumber(m?.wave_direction);
+  const windSpeedKmh = pickNumber(w?.wind_speed_10m);
+  const windDirectionDeg = pickNumber(w?.wind_direction_10m);
 
   if (
     waveHeightM === null ||
@@ -116,9 +116,9 @@ export async function fetchOpenMeteoSnapshot(
     waveDirectionDeg,
     windSpeedKmh,
     windDirectionDeg,
-    airTemperatureC: pickNumber(w.temperature_2m),
-    waterTemperatureC: pickNumber(m.sea_surface_temperature),
-    seaLevelM: pickNumber(m.sea_level_height_msl),
+    airTemperatureC: pickNumber(w?.temperature_2m),
+    waterTemperatureC: pickNumber(m?.sea_surface_temperature),
+    seaLevelM: pickNumber(m?.sea_level_height_msl),
     fetchedAt: new Date(),
     raw: { marine, weather },
   };
