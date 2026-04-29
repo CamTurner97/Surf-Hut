@@ -34,24 +34,6 @@ export const FacingDirection = {
   S: "S",
 } as const;
 
-export interface Beach {
-  /** Stable slug, e.g. "bondi" */
-  id: string;
-  name: string;
-  region: Region;
-  latitude: number;
-  longitude: number;
-  facingDirection: FacingDirection;
-  description: string;
-  /** Relative path to the beach hero image */
-  heroImageUrl: string;
-}
-
-export interface BeachListResponse {
-  beaches: Beach[];
-  count: number;
-}
-
 /**
  * Human-readable label derived from the numeric score
  */
@@ -65,6 +47,32 @@ export const SurfScoreLabel = {
   Good: "Good",
   Epic: "Epic",
 } as const;
+
+export interface Beach {
+  /** Stable slug, e.g. "bondi" */
+  id: string;
+  name: string;
+  region: Region;
+  latitude: number;
+  longitude: number;
+  facingDirection: FacingDirection;
+  description: string;
+  /** Relative path to the beach hero image */
+  heroImageUrl: string;
+  /**
+   * Most recent cached surf score, or null if no report has been fetched yet
+   * @minimum 1
+   * @maximum 10
+   */
+  latestScore?: number | null;
+  latestScoreLabel?: SurfScoreLabel | null;
+  latestReportFetchedAt?: string | null;
+}
+
+export interface BeachListResponse {
+  beaches: Beach[];
+  count: number;
+}
 
 /**
  * Wind direction relative to the beach facing

@@ -7,6 +7,7 @@
  */
 import type { FacingDirection } from "./facingDirection";
 import type { Region } from "./region";
+import type { SurfScoreLabel } from "./surfScoreLabel";
 
 export interface Beach {
   /** Stable slug, e.g. "bondi" */
@@ -19,4 +20,12 @@ export interface Beach {
   description: string;
   /** Relative path to the beach hero image */
   heroImageUrl: string;
+  /**
+   * Most recent cached surf score, or null if no report has been fetched yet
+   * @minimum 1
+   * @maximum 10
+   */
+  latestScore?: number | null;
+  latestScoreLabel?: SurfScoreLabel | null;
+  latestReportFetchedAt?: Date | null;
 }

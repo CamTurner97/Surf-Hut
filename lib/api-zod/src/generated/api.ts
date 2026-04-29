@@ -19,6 +19,8 @@ export const HealthCheckResponse = zod.object({
  * Returns the catalogue of Sydney surf beaches
  * @summary List all beaches
  */
+export const listBeachesResponseBeachesItemLatestScoreMax = 10;
+
 export const ListBeachesResponse = zod.object({
   beaches: zod.array(
     zod.object({
@@ -36,6 +38,19 @@ export const ListBeachesResponse = zod.object({
       heroImageUrl: zod
         .string()
         .describe("Relative path to the beach hero image"),
+      latestScore: zod
+        .number()
+        .min(1)
+        .max(listBeachesResponseBeachesItemLatestScoreMax)
+        .nullish()
+        .describe(
+          "Most recent cached surf score, or null if no report has been fetched yet",
+        ),
+      latestScoreLabel: zod
+        .enum(["Flat", "Poor", "Fair", "Good", "Epic"])
+        .describe("Human-readable label derived from the numeric score")
+        .nullish(),
+      latestReportFetchedAt: zod.coerce.date().nullish(),
     }),
   ),
   count: zod.number(),
