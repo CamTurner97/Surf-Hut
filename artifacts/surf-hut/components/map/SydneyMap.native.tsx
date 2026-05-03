@@ -1,25 +1,11 @@
-import React, { useCallback, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import MapView, { Callout, Marker, type Region } from "react-native-maps";
+import React, { useCallback, useMemo, useRef } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
 import type { Beach } from "@workspace/api-client-react";
 
 import { useColors } from "@/hooks/useColors";
-import { BeachPin } from "./BeachPin";
 import { pinColor, type ScoreLabel } from "./scoreColor";
-
-const SYDNEY_REGION: Region = {
-  latitude: -33.86,
-  longitude: 151.21,
-  latitudeDelta: 0.9,
-  longitudeDelta: 0.65,
-};
 
 interface SydneyMapProps {
   beaches: Beach[];
@@ -27,99 +13,180 @@ interface SydneyMapProps {
   onBeachPress?: (beach: Beach) => void;
 }
 
-function ScoreBadge({ label }: { label: string | null | undefined }) {
-  if (!label) return null;
-  const color = pinColor(label as ScoreLabel);
-  return (
-    <View style={[styles.badge, { backgroundColor: color }]}>
-      <Text style={styles.badgeText}>{label}</Text>
-    </View>
-  );
+/** Serialisable slice of a beach sent into the WebView. */
+interface PinData {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  score: number | null;
+  label: string | null;
+  color: string;
+}
+
+function buildMapHtml(pins: PinData[]): string {
+  const pinsJson = JSON.stringify(pins);
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body, #map { width:100%; height:100%; background:#e8e0d8; }
+    .pin {
+      width:32px; height:32px; border-radius:50%;
+      border:2.5px solid rgba(255,255,255,0.9);
+      display:flex; align-items:center; justify-content:center;
+      font-family:-apple-system,sans-serif; font-weight:700;
+      font-size:13px; color:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,0.32);
+      cursor:pointer;
+    }
+    .pin.selected { width:38px; height:38px; font-size:15px; }
+    .popup-box {
+      font-family:-apple-system,sans-serif;
+      min-width:160px;
+    }
+    .popup-name { font-weight:600; font-size:15px; color:#1a1a1a; margin-bottom:6px; }
+    .popup-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+    .badge {
+      border-radius:6px; padding:2px 8px;
+      font-size:12px; font-weight:600; color:#fff;
+    }
+    .popup-score { font-size:13px; color:#666; }
+    .popup-hint { font-size:11px; color:#999; margin-top:4px; }
+    .legend {
+      position:absolute; bottom:24px; right:12px;
+      background:rgba(250,247,242,0.96);
+      border-radius:12px; padding:10px 14px; z-index:1000;
+      font-family:-apple-system,sans-serif; font-size:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.12);
+      pointer-events:none;
+    }
+    .legend-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+    .legend-row:last-child { margin-bottom:0; }
+    .legend-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .leaflet-popup-content-wrapper { border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .leaflet-popup-content { margin:12px 14px; }
+    .leaflet-popup-tip-container { display:none; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="legend">
+  <div class="legend-row"><div class="legend-dot" style="background:#E36322"></div>Epic</div>
+  <div class="legend-row"><div class="legend-dot" style="background:#1F8A8A"></div>Good</div>
+  <div class="legend-row"><div class="legend-dot" style="background:#C4921B"></div>Fair</div>
+  <div class="legend-row"><div class="legend-dot" style="background:#8E8E8E"></div>Poor</div>
+</div>
+<script>
+var map = L.map('map', { zoomControl: false, attributionControl: false })
+  .setView([-33.86, 151.21], 11);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18
+}).addTo(map);
+
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+var pins = ${pinsJson};
+var selectedId = null;
+var markers = {};
+
+pins.forEach(function(p) {
+  var scoreText = p.score != null ? p.score : '?';
+  var icon = L.divIcon({
+    html: '<div class="pin" id="pin-' + p.id + '" style="background:' + p.color + '">' + scoreText + '</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
+    className: ''
+  });
+
+  var popupHtml = '<div class="popup-box">'
+    + '<div class="popup-name">' + p.name + '</div>'
+    + '<div class="popup-row">'
+    + (p.label ? '<span class="badge" style="background:' + p.color + '">' + p.label + '</span>' : '')
+    + (p.score != null ? '<span class="popup-score">' + p.score + '/10</span>' : '')
+    + '</div>'
+    + '<div class="popup-hint" onclick="notifyPress(\'' + p.id + '\')">Tap for full report →</div>'
+    + '</div>';
+
+  var marker = L.marker([p.lat, p.lng], { icon: icon })
+    .bindPopup(popupHtml, { closeButton: false, maxWidth: 220 })
+    .addTo(map);
+
+  marker.on('click', function() {
+    selectedId = p.id;
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'select', id: p.id }));
+  });
+
+  markers[p.id] = marker;
+});
+
+function notifyPress(id) {
+  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'beach_press', id: id }));
+}
+</script>
+</body>
+</html>`;
 }
 
 export function SydneyMap({ beaches, loading, onBeachPress }: SydneyMapProps) {
   const colors = useColors();
-  const mapRef = useRef<MapView>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const webViewRef = useRef<WebView>(null);
 
-  const handleMarkerPress = useCallback((beach: Beach) => {
-    setSelectedId(beach.id);
-  }, []);
+  const pins = useMemo<PinData[]>(
+    () =>
+      beaches.map((b) => ({
+        id: b.id,
+        name: b.name,
+        lat: b.latitude,
+        lng: b.longitude,
+        score: b.latestScore ?? null,
+        label: b.latestScoreLabel ?? null,
+        color: pinColor(b.latestScoreLabel as ScoreLabel),
+      })),
+    [beaches],
+  );
 
-  const handleCalloutPress = useCallback(
-    (beach: Beach) => {
-      onBeachPress?.(beach);
+  const html = useMemo(() => buildMapHtml(pins), [pins]);
+
+  const handleMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      try {
+        const msg = JSON.parse(event.nativeEvent.data) as {
+          type: string;
+          id: string;
+        };
+        if (msg.type === "beach_press") {
+          const beach = beaches.find((b) => b.id === msg.id);
+          if (beach) onBeachPress?.(beach);
+        }
+      } catch {
+        // ignore malformed messages
+      }
     },
-    [onBeachPress],
+    [beaches, onBeachPress],
   );
 
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapRef}
+      <WebView
+        ref={webViewRef}
         style={styles.map}
-        initialRegion={SYDNEY_REGION}
-        showsUserLocation
-        showsMyLocationButton={false}
-        showsCompass={false}
-        mapType="standard"
-      >
-        {beaches.map((beach) => (
-          <Marker
-            key={beach.id}
-            coordinate={{
-              latitude: beach.latitude,
-              longitude: beach.longitude,
-            }}
-            onPress={() => handleMarkerPress(beach)}
-            tracksViewChanges={false}
-          >
-            <BeachPin
-              score={beach.latestScore}
-              label={beach.latestScoreLabel}
-              size={selectedId === beach.id ? 38 : 32}
-            />
-            <Callout tooltip onPress={() => handleCalloutPress(beach)}>
-              <View
-                style={[
-                  styles.callout,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[styles.calloutName, { color: colors.foreground }]}
-                >
-                  {beach.name}
-                </Text>
-                <View style={styles.calloutRow}>
-                  <ScoreBadge label={beach.latestScoreLabel} />
-                  {beach.latestScore != null && (
-                    <Text
-                      style={[
-                        styles.calloutScore,
-                        { color: colors.mutedForeground },
-                      ]}
-                    >
-                      {beach.latestScore}/10
-                    </Text>
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.calloutHint,
-                    { color: colors.mutedForeground },
-                  ]}
-                >
-                  Tap for full report →
-                </Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-      </MapView>
+        originWhitelist={["*"]}
+        source={{ html }}
+        onMessage={handleMessage}
+        javaScriptEnabled
+        domStorageEnabled
+        scrollEnabled={false}
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+      />
 
       {loading && (
         <View
@@ -129,86 +196,18 @@ export function SydneyMap({ beaches, loading, onBeachPress }: SydneyMapProps) {
           ]}
         >
           <ActivityIndicator color={colors.primary} size="large" />
-          <Text
-            style={[styles.loadingText, { color: colors.mutedForeground }]}
-          >
+          <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
             Checking the surf…
           </Text>
         </View>
       )}
-
-      {/* Score legend */}
-      <View
-        style={[
-          styles.legend,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
-        {(
-          [
-            { label: "Epic", color: "#E36322" },
-            { label: "Good", color: "#1F8A8A" },
-            { label: "Fair", color: "#C4921B" },
-            { label: "Poor", color: "#8E8E8E" },
-          ] as const
-        ).map(({ label, color }) => (
-          <View key={label} style={styles.legendRow}>
-            <View style={[styles.legendDot, { backgroundColor: color }]} />
-            <Text
-              style={[styles.legendLabel, { color: colors.foreground }]}
-            >
-              {label}
-            </Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  map: { flex: 1 },
-  callout: {
-    width: 200,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
-    gap: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  calloutName: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
-  },
-  calloutRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  calloutScore: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 13,
-  },
-  calloutHint: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    marginTop: 2,
-  },
-  badge: {
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-  },
+  map: { flex: 1, backgroundColor: "transparent" },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
@@ -218,34 +217,5 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: "Inter_500Medium",
     fontSize: 15,
-  },
-  legend: {
-    position: "absolute",
-    bottom: 24,
-    right: 16,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    gap: 7,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  legendRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  legendDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-  },
-  legendLabel: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 12,
   },
 });
