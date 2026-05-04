@@ -8,8 +8,8 @@ import { asc, eq } from "drizzle-orm";
 const router = Router();
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), "../public");
-const leafletMinJs = readFileSync(join(publicDir, "leaflet.min.js"), "utf-8");
-const leafletMinCss = readFileSync(join(publicDir, "leaflet.min.css"), "utf-8");
+const leafletMinJs = readFileSync(join(publicDir, "leaflet.js"), "utf-8");
+const leafletMinCss = readFileSync(join(publicDir, "leaflet.css"), "utf-8");
 
 /**
  * GET /api/map
