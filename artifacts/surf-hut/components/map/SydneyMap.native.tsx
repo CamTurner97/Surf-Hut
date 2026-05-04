@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -19,12 +19,123 @@ interface SydneyMapProps {
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 const MAP_HTML_URL = domain ? `https://${domain}/api/map` : null;
-const MAP_JS_URL = domain ? `https://${domain}/api/map-js` : null;
+// Leaflet is served from /api/static/ — fetched inside the WebView's own
+// JS context so it never crosses the React Native bridge.
+const LEAFLET_URL = domain
+  ? `https://${domain}/api/static/leaflet.min.js`
+  : null;
+
+/**
+ * Small injectedJavaScript bootstrap (~2 KB).
+ *
+ * Strategy (confirmed working via diagnostic):
+ *   1. injectedJavaScript runs after DOMContentLoaded — bypasses Android's
+ *      inline-<script> CSP block.
+ *   2. We keep this string tiny to avoid React Native bridge size limits.
+ *   3. Leaflet (144 KB) is fetched INSIDE the WebView's own network stack,
+ *      injected as a dynamic <script> element (allowed by 'unsafe-inline' CSP),
+ *      then the map is initialised.
+ *   4. Beach data comes from a <script type="application/json"> block in the
+ *      HTML — never executed, never blocked.
+ *   5. Every step posts a diagnostic message so Expo console can report it.
+ */
+function makeInjectedJs(leafletUrl: string): string {
+  return `(function(){
+  function pm(obj){
+    try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(obj));}catch(e){}
+  }
+  function showError(msg){
+    var l=document.getElementById('loading');
+    var b=document.getElementById('error-box');
+    var m=document.getElementById('error-msg');
+    if(l)l.style.display='none';
+    if(b)b.style.display='flex';
+    if(m)m.textContent=msg;
+    pm({type:'error',message:msg});
+  }
+
+  pm({type:'js_started'});
+
+  // Read beach data from non-executable JSON block
+  var beachEl=document.getElementById('beach-data');
+  if(!beachEl){showError('beach-data element missing');return;}
+  var BEACHES;
+  try{BEACHES=JSON.parse(beachEl.textContent||'[]');}
+  catch(e){showError('beach JSON parse: '+e.message);return;}
+  pm({type:'beaches_parsed',count:BEACHES.length});
+
+  var COLORS={Epic:'#E36322',Good:'#1F8A8A',Fair:'#C4921B',Poor:'#8E8E8E',Flat:'#B8B0A6'};
+
+  window.postMsg=function(data){pm(data);};
+
+  function pinColor(label){return COLORS[label]||'#B8B0A6';}
+
+  function initMap(){
+    pm({type:'init_map'});
+    try{
+      var map=L.map('map',{zoomControl:false,attributionControl:false})
+        .setView([-33.86,151.21],11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+      L.control.zoom({position:'topright'}).addTo(map);
+
+      BEACHES.forEach(function(b){
+        var color=pinColor(b.label);
+        var scoreText=b.score!=null?b.score:'?';
+        var icon=L.divIcon({
+          html:'<div class="pin" style="background:'+color+'">'+scoreText+'</div>',
+          iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-20],className:''
+        });
+        var badgeHtml=b.label?'<span class="badge" style="background:'+color+'">'+b.label+'</span>':'';
+        var scoreHtml=b.score!=null?'<span class="popup-score">'+b.score+'/10</span>':'';
+        var popupHtml='<div class="popup-box">'
+          +'<div class="popup-name">'+b.name+'</div>'
+          +'<div class="popup-row">'+badgeHtml+scoreHtml+'</div>'
+          +'<div class="popup-hint" onclick="window.postMsg({type:\'beach_press\',id:\''+b.id+'\'})">'
+          +'Tap for full report \u2192</div></div>';
+        var marker=L.marker([b.lat,b.lng],{icon:icon}).addTo(map);
+        marker.bindPopup(popupHtml,{closeButton:false,maxWidth:220});
+        marker.on('click',function(){pm({type:'select',id:b.id});});
+      });
+
+      var loadEl=document.getElementById('loading');
+      var legEl=document.getElementById('legend');
+      if(loadEl)loadEl.style.display='none';
+      if(legEl)legEl.style.display='block';
+      pm({type:'map_ready',pins:BEACHES.length});
+
+    }catch(e){
+      showError('Map init error: '+(e&&e.message?e.message:String(e)));
+    }
+  }
+
+  // Fetch Leaflet inside WebView's own network stack (avoids RN bridge size limit)
+  pm({type:'fetching_leaflet',url:'${leafletUrl}'});
+  fetch('${leafletUrl}')
+    .then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.text();
+    })
+    .then(function(code){
+      pm({type:'leaflet_fetched',bytes:code.length});
+      // Inject as dynamic script element — allowed by 'unsafe-inline' CSP
+      var s=document.createElement('script');
+      s.textContent=code;
+      document.head.appendChild(s);
+      pm({type:'leaflet_injected',L_defined:typeof L!=='undefined'});
+      if(typeof L==='undefined'){showError('L not defined after Leaflet inject');return;}
+      initMap();
+    })
+    .catch(function(e){
+      showError('Leaflet fetch failed: '+e.message);
+    });
+})();
+true;`;
+}
 
 type FetchState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "ready"; html: string; js: string }
+  | { status: "ready"; html: string }
   | { status: "error"; message: string };
 
 export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
@@ -33,22 +144,16 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
   const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
 
   useEffect(() => {
-    if (!MAP_HTML_URL || !MAP_JS_URL) return;
+    if (!MAP_HTML_URL) return;
     setFetchState({ status: "loading" });
 
     const controller = new AbortController();
-
-    Promise.all([
-      fetch(MAP_HTML_URL, { signal: controller.signal }).then((r) => {
+    fetch(MAP_HTML_URL, { signal: controller.signal })
+      .then((r) => {
         if (!r.ok) throw new Error(`HTML: HTTP ${r.status}`);
         return r.text();
-      }),
-      fetch(MAP_JS_URL, { signal: controller.signal }).then((r) => {
-        if (!r.ok) throw new Error(`JS: HTTP ${r.status}`);
-        return r.text();
-      }),
-    ])
-      .then(([html, js]) => setFetchState({ status: "ready", html, js }))
+      })
+      .then((html) => setFetchState({ status: "ready", html }))
       .catch((err: Error) => {
         if (err.name !== "AbortError") {
           setFetchState({ status: "error", message: err.message });
@@ -58,6 +163,9 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
     return () => controller.abort();
   }, []);
 
+  const injectedJs =
+    MAP_HTML_URL && LEAFLET_URL ? makeInjectedJs(LEAFLET_URL) : "";
+
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
       try {
@@ -65,7 +173,11 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
           type: string;
           id?: string;
           message?: string;
+          [key: string]: unknown;
         };
+        // Log all diagnostic messages to Expo console
+        console.log("[SydneyMap]", JSON.stringify(msg));
+
         if (msg.type === "beach_press" && msg.id) {
           const beach = beaches.find((b) => b.id === msg.id);
           if (beach) onBeachPress?.(beach);
@@ -114,17 +226,13 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
     );
   }
 
-  // Both HTML and JS fetched. Pass HTML to WebView, JS via injectedJavaScript
-  // (Android blocks inline <script> tags but injectedJavaScript always runs).
   return (
     <View style={styles.container}>
       <WebView
         ref={webViewRef}
         style={styles.map}
         source={{ html: fetchState.html, baseUrl: MAP_HTML_URL }}
-        // injectedJavaScript runs after DOMContentLoaded — not subject to the
-        // inline-script CSP restrictions that block <script> tags on Android.
-        injectedJavaScript={fetchState.js}
+        injectedJavaScript={injectedJs}
         onMessage={handleMessage}
         javaScriptEnabled
         domStorageEnabled

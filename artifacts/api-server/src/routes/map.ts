@@ -8,18 +8,48 @@ import { asc, eq } from "drizzle-orm";
 const router = Router();
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), "../public");
-const leafletMinJs = readFileSync(join(publicDir, "leaflet.js"), "utf-8");
-const leafletMinCss = readFileSync(join(publicDir, "leaflet.css"), "utf-8");
+const leafletCss = readFileSync(join(publicDir, "leaflet.css"), "utf-8");
 
 /**
  * GET /api/map
- * HTML shell — DOM structure + CSS only. Zero <script> tags.
- * JavaScript is served separately at /api/map-js and injected by the
- * React Native WebView via injectedJavaScript (bypasses Android inline-script
- * CSP restrictions in Expo Go's WebView).
+ * HTML shell — DOM structure + CSS + beach data embedded as a JSON data block
+ * (<script type="application/json"> is never executed by the browser, so it
+ * bypasses Android WebView inline-script restrictions entirely).
+ *
+ * Zero executable <script> tags. JavaScript is injected by the React Native
+ * WebView via injectedJavaScript, which fetches Leaflet from /api/static/
+ * within the WebView's own network context.
  */
-router.get("/map", (_req, res) => {
-  const html = `<!DOCTYPE html>
+router.get("/map", async (req, res, next) => {
+  try {
+    const rows = await db
+      .select({
+        id: beachesTable.id,
+        name: beachesTable.name,
+        latitude: beachesTable.latitude,
+        longitude: beachesTable.longitude,
+        latestScore: surfReportsTable.score,
+        latestScoreLabel: surfReportsTable.scoreLabel,
+      })
+      .from(beachesTable)
+      .leftJoin(
+        surfReportsTable,
+        eq(surfReportsTable.beachId, beachesTable.id),
+      )
+      .orderBy(asc(beachesTable.region), asc(beachesTable.name));
+
+    const beaches = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      lat: r.latitude,
+      lng: r.longitude,
+      score: r.latestScore,
+      label: r.latestScoreLabel,
+    }));
+
+    const beachesJson = JSON.stringify(beaches);
+
+    const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -27,7 +57,7 @@ router.get("/map", (_req, res) => {
   <meta http-equiv="Content-Security-Policy"
         content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
   <title>Surf Hut Map</title>
-  <style>${leafletMinCss}</style>
+  <style>${leafletCss}</style>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%;width:100%;overflow:hidden}
@@ -109,125 +139,15 @@ router.get("/map", (_req, res) => {
     <div class="legend-row"><div class="legend-dot" style="background:#C4921B"></div>Fair</div>
     <div class="legend-row"><div class="legend-dot" style="background:#8E8E8E"></div>Poor</div>
   </div>
+
+  <!-- Beach data as non-executable JSON data block — never blocked by CSP -->
+  <script type="application/json" id="beach-data">${beachesJson}</script>
 </body>
 </html>`;
 
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
-  res.send(html);
-});
-
-/**
- * GET /api/map-js
- * Self-contained JavaScript bundle: Leaflet (minified) + beach data (from DB)
- * + map initialisation. Returned as text/javascript so React Native can
- * fetch it and pass directly to WebView injectedJavaScript.
- *
- * Must end with `true;` — required by injectedJavaScript.
- * Exposes window.postMsg so inline onclick handlers in popup HTML can call it.
- */
-router.get("/map-js", async (req, res, next) => {
-  try {
-    const rows = await db
-      .select({
-        id: beachesTable.id,
-        name: beachesTable.name,
-        latitude: beachesTable.latitude,
-        longitude: beachesTable.longitude,
-        latestScore: surfReportsTable.score,
-        latestScoreLabel: surfReportsTable.scoreLabel,
-      })
-      .from(beachesTable)
-      .leftJoin(
-        surfReportsTable,
-        eq(surfReportsTable.beachId, beachesTable.id),
-      )
-      .orderBy(asc(beachesTable.region), asc(beachesTable.name));
-
-    const beaches = rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      lat: r.latitude,
-      lng: r.longitude,
-      score: r.latestScore,
-      label: r.latestScoreLabel,
-    }));
-
-    const beachesJson = JSON.stringify(beaches);
-
-    // Wrap in IIFE so local variables don't pollute the page global scope,
-    // but expose postMsg on window so popup onclick attributes can reach it.
-    const js = `(function(){
-${leafletMinJs}
-
-var BEACHES=${beachesJson};
-var COLORS={Epic:'#E36322',Good:'#1F8A8A',Fair:'#C4921B',Poor:'#8E8E8E',Flat:'#B8B0A6'};
-
-window.postMsg=function(data){
-  try{
-    if(window.ReactNativeWebView){
-      window.ReactNativeWebView.postMessage(JSON.stringify(data));
-    }
-  }catch(e){}
-};
-
-function pinColor(label){return COLORS[label]||'#B8B0A6';}
-
-function showError(msg){
-  document.getElementById('loading').style.display='none';
-  var box=document.getElementById('error-box');
-  box.style.display='flex';
-  document.getElementById('error-msg').textContent=msg;
-  window.postMsg({type:'error',message:msg});
-}
-
-try{
-  var map=L.map('map',{zoomControl:false,attributionControl:false})
-    .setView([-33.86,151.21],11);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:18
-  }).addTo(map);
-
-  L.control.zoom({position:'topright'}).addTo(map);
-
-  BEACHES.forEach(function(b){
-    var color=pinColor(b.label);
-    var scoreText=b.score!=null?b.score:'?';
-
-    var icon=L.divIcon({
-      html:'<div class="pin" style="background:'+color+'">'+scoreText+'</div>',
-      iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-20],className:''
-    });
-
-    var badgeHtml=b.label
-      ?'<span class="badge" style="background:'+color+'">'+b.label+'</span>':'';
-    var scoreHtml=b.score!=null
-      ?'<span class="popup-score">'+b.score+'/10</span>':'';
-    var popupHtml='<div class="popup-box">'
-      +'<div class="popup-name">'+b.name+'</div>'
-      +'<div class="popup-row">'+badgeHtml+scoreHtml+'</div>'
-      +'<div class="popup-hint" onclick="window.postMsg({type:\'beach_press\',id:\''+b.id+'\'})">'
-      +'Tap for full report \u2192</div></div>';
-
-    var marker=L.marker([b.lat,b.lng],{icon:icon}).addTo(map);
-    marker.bindPopup(popupHtml,{closeButton:false,maxWidth:220});
-    marker.on('click',function(){window.postMsg({type:'select',id:b.id});});
-  });
-
-  document.getElementById('loading').style.display='none';
-  document.getElementById('legend').style.display='block';
-
-}catch(e){
-  showError('Map error: '+(e&&e.message?e.message:String(e)));
-}
-
-})();
-true;`;
-
-    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
-    res.send(js);
+    res.send(html);
   } catch (err) {
     next(err);
   }
