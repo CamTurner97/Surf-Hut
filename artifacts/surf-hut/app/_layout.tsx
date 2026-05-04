@@ -32,6 +32,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="beach/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -56,7 +57,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView>
+          <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <RootLayoutNav />
             </KeyboardProvider>
