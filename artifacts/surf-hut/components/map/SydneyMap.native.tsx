@@ -1,5 +1,10 @@
-import React, { useCallback, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
 import type { Beach } from "@workspace/api-client-react";
@@ -12,49 +17,46 @@ interface SydneyMapProps {
   onBeachPress?: (beach: Beach) => void;
 }
 
-// ---------------------------------------------------------------------------
-// JS DIAGNOSTIC
-// Inline script  → green
-// injectedJavaScript only → blue
-// Neither ran    → red
-// ---------------------------------------------------------------------------
-const DIAG_HTML = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
-</head>
-<body style="margin:0;background:#c0392b;display:flex;flex-direction:column;
-             align-items:center;justify-content:center;height:100vh">
-  <p id="s" style="color:#fff;font-size:22px;font-weight:bold;text-align:center;
-                   padding:20px;font-family:sans-serif">
-    RED<br>inline JS not running
-  </p>
-  <script>
-    document.getElementById('s').innerHTML =
-      'GREEN<br>inline JS works';
-    document.body.style.background = '#27ae60';
-  </script>
-</body>
-</html>`;
+const domain = process.env.EXPO_PUBLIC_DOMAIN;
+const MAP_HTML_URL = domain ? `https://${domain}/api/map` : null;
+const MAP_JS_URL = domain ? `https://${domain}/api/map-js` : null;
 
-// injectedJavaScript runs after DOMContentLoaded — overrides the inline result
-const INJECTED = `
-  (function(){
-    var el = document.getElementById('s');
-    if (el) {
-      el.innerHTML = 'BLUE<br>injectedJS works<br>(inline may be blocked)';
-      document.body.style.background = '#2980b9';
-    }
-  })();
-  true;
-`;
+type FetchState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; html: string; js: string }
+  | { status: "error"; message: string };
 
 export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
   const colors = useColors();
   const webViewRef = useRef<WebView>(null);
+  const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
+
+  useEffect(() => {
+    if (!MAP_HTML_URL || !MAP_JS_URL) return;
+    setFetchState({ status: "loading" });
+
+    const controller = new AbortController();
+
+    Promise.all([
+      fetch(MAP_HTML_URL, { signal: controller.signal }).then((r) => {
+        if (!r.ok) throw new Error(`HTML: HTTP ${r.status}`);
+        return r.text();
+      }),
+      fetch(MAP_JS_URL, { signal: controller.signal }).then((r) => {
+        if (!r.ok) throw new Error(`JS: HTTP ${r.status}`);
+        return r.text();
+      }),
+    ])
+      .then(([html, js]) => setFetchState({ status: "ready", html, js }))
+      .catch((err: Error) => {
+        if (err.name !== "AbortError") {
+          setFetchState({ status: "error", message: err.message });
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -62,6 +64,7 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
         const msg = JSON.parse(event.nativeEvent.data) as {
           type: string;
           id?: string;
+          message?: string;
         };
         if (msg.type === "beach_press" && msg.id) {
           const beach = beaches.find((b) => b.id === msg.id);
@@ -74,23 +77,66 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
     [beaches, onBeachPress],
   );
 
+  if (!MAP_HTML_URL) {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.msgText, { color: colors.mutedForeground }]}>
+          Map unavailable — EXPO_PUBLIC_DOMAIN not configured.
+        </Text>
+      </View>
+    );
+  }
+
+  if (fetchState.status === "idle" || fetchState.status === "loading") {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={[styles.msgText, { color: colors.mutedForeground }]}>
+          Loading map…
+        </Text>
+      </View>
+    );
+  }
+
+  if (fetchState.status === "error") {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.msgText, { color: colors.destructive }]}>
+          Could not load map
+        </Text>
+        <Text
+          style={[styles.subText, { color: colors.mutedForeground }]}
+          selectable
+        >
+          {fetchState.message}
+        </Text>
+      </View>
+    );
+  }
+
+  // Both HTML and JS fetched. Pass HTML to WebView, JS via injectedJavaScript
+  // (Android blocks inline <script> tags but injectedJavaScript always runs).
   return (
     <View style={styles.container}>
       <WebView
         ref={webViewRef}
         style={styles.map}
-        source={{ html: DIAG_HTML }}
-        injectedJavaScript={INJECTED}
+        source={{ html: fetchState.html, baseUrl: MAP_HTML_URL }}
+        // injectedJavaScript runs after DOMContentLoaded — not subject to the
+        // inline-script CSP restrictions that block <script> tags on Android.
+        injectedJavaScript={fetchState.js}
         onMessage={handleMessage}
         javaScriptEnabled
         domStorageEnabled
         scrollEnabled={false}
         bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         onError={(e) =>
-          console.error("[WebView] error", e.nativeEvent)
+          console.error("[SydneyMap] WebView error:", e.nativeEvent)
         }
         onHttpError={(e) =>
-          console.error("[WebView] http error", e.nativeEvent.statusCode)
+          console.error("[SydneyMap] HTTP error:", e.nativeEvent.statusCode)
         }
       />
     </View>
@@ -99,5 +145,22 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  map: { flex: 1 },
+  map: { flex: 1, backgroundColor: "#FAF7F2" },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 12,
+  },
+  msgText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 15,
+    textAlign: "center",
+  },
+  subText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    textAlign: "center",
+  },
 });
