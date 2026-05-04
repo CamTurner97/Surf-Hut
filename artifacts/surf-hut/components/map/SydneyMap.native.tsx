@@ -40,93 +40,101 @@ const LEAFLET_URL = domain
  *   5. Every step posts a diagnostic message so Expo console can report it.
  */
 function makeInjectedJs(leafletUrl: string): string {
+  // IMPORTANT: this string is a TypeScript template literal.
+  // \'  inside a template literal is NOT a valid escape — the backslash is
+  // consumed and you get a bare ' which breaks the inner JS string literals.
+  // Rule: use only double-quoted strings inside this template literal, or
+  // single-quoted strings that never need an internal escaped single quote.
   return `(function(){
   function pm(obj){
     try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(obj));}catch(e){}
   }
   function showError(msg){
-    var l=document.getElementById('loading');
-    var b=document.getElementById('error-box');
-    var m=document.getElementById('error-msg');
-    if(l)l.style.display='none';
-    if(b)b.style.display='flex';
+    var l=document.getElementById("loading");
+    var b=document.getElementById("error-box");
+    var m=document.getElementById("error-msg");
+    if(l)l.style.display="none";
+    if(b)b.style.display="flex";
     if(m)m.textContent=msg;
-    pm({type:'error',message:msg});
+    pm({type:"error",message:msg});
   }
 
-  pm({type:'js_started'});
+  pm({type:"js_started"});
 
-  // Read beach data from non-executable JSON block
-  var beachEl=document.getElementById('beach-data');
-  if(!beachEl){showError('beach-data element missing');return;}
+  var beachEl=document.getElementById("beach-data");
+  if(!beachEl){showError("beach-data element missing");return;}
   var BEACHES;
-  try{BEACHES=JSON.parse(beachEl.textContent||'[]');}
-  catch(e){showError('beach JSON parse: '+e.message);return;}
-  pm({type:'beaches_parsed',count:BEACHES.length});
+  try{BEACHES=JSON.parse(beachEl.textContent||"[]");}
+  catch(e){showError("beach JSON parse: "+e.message);return;}
+  pm({type:"beaches_parsed",count:BEACHES.length});
 
-  var COLORS={Epic:'#E36322',Good:'#1F8A8A',Fair:'#C4921B',Poor:'#8E8E8E',Flat:'#B8B0A6'};
-
+  var COLORS={Epic:"#E36322",Good:"#1F8A8A",Fair:"#C4921B",Poor:"#8E8E8E",Flat:"#B8B0A6"};
   window.postMsg=function(data){pm(data);};
-
-  function pinColor(label){return COLORS[label]||'#B8B0A6';}
+  function pinColor(label){return COLORS[label]||"#B8B0A6";}
 
   function initMap(){
-    pm({type:'init_map'});
+    pm({type:"init_map"});
     try{
-      var map=L.map('map',{zoomControl:false,attributionControl:false})
+      var map=L.map("map",{zoomControl:false,attributionControl:false})
         .setView([-33.86,151.21],11);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
-      L.control.zoom({position:'topright'}).addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
+      L.control.zoom({position:"topright"}).addTo(map);
 
       BEACHES.forEach(function(b){
         var color=pinColor(b.label);
-        var scoreText=b.score!=null?b.score:'?';
+        var scoreText=b.score!=null?b.score:"?";
         var icon=L.divIcon({
-          html:'<div class="pin" style="background:'+color+'">'+scoreText+'</div>',
-          iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-20],className:''
+          html:"<div class=\\"pin\\" style=\\"background:"+color+"\\">"+scoreText+"</div>",
+          iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-20],className:""
         });
-        var badgeHtml=b.label?'<span class="badge" style="background:'+color+'">'+b.label+'</span>':'';
-        var scoreHtml=b.score!=null?'<span class="popup-score">'+b.score+'/10</span>':'';
-        var popupHtml='<div class="popup-box">'
-          +'<div class="popup-name">'+b.name+'</div>'
-          +'<div class="popup-row">'+badgeHtml+scoreHtml+'</div>'
-          +'<div class="popup-hint" onclick="window.postMsg({type:\'beach_press\',id:\''+b.id+'\'})">'
-          +'Tap for full report \u2192</div></div>';
+        var badgeHtml=b.label?"<span class=\\"badge\\" style=\\"background:"+color+"\\">"+b.label+"</span>":"";
+        var scoreHtml=b.score!=null?"<span class=\\"popup-score\\">"+b.score+"/10</span>":"";
+        // Use data-id attribute — avoids any quote-nesting problem in onclick
+        var popupHtml="<div class=\\"popup-box\\">"
+          +"<div class=\\"popup-name\\">"+b.name+"</div>"
+          +"<div class=\\"popup-row\\">"+badgeHtml+scoreHtml+"</div>"
+          +"<div class=\\"popup-hint\\" data-beach-id=\\""+b.id+"\\">Tap for full report \u2192</div>"
+          +"</div>";
         var marker=L.marker([b.lat,b.lng],{icon:icon}).addTo(map);
         marker.bindPopup(popupHtml,{closeButton:false,maxWidth:220});
-        marker.on('click',function(){pm({type:'select',id:b.id});});
+        // Attach click handler after popup opens (data-id approach)
+        (function(beachId){
+          marker.on("popupopen",function(){
+            var el=document.querySelector("[data-beach-id=\\""+beachId+"\\"]");
+            if(el)el.addEventListener("click",function(){pm({type:"beach_press",id:beachId});});
+          });
+          marker.on("click",function(){pm({type:"select",id:beachId});});
+        })(b.id);
       });
 
-      var loadEl=document.getElementById('loading');
-      var legEl=document.getElementById('legend');
-      if(loadEl)loadEl.style.display='none';
-      if(legEl)legEl.style.display='block';
-      pm({type:'map_ready',pins:BEACHES.length});
+      var loadEl=document.getElementById("loading");
+      var legEl=document.getElementById("legend");
+      if(loadEl)loadEl.style.display="none";
+      if(legEl)legEl.style.display="block";
+      pm({type:"map_ready",pins:BEACHES.length});
 
     }catch(e){
-      showError('Map init error: '+(e&&e.message?e.message:String(e)));
+      showError("Map init: "+(e&&e.message?e.message:String(e)));
     }
   }
 
-  // Fetch Leaflet inside WebView's own network stack (avoids RN bridge size limit)
-  pm({type:'fetching_leaflet',url:'${leafletUrl}'});
-  fetch('${leafletUrl}')
+  pm({type:"fetching_leaflet",url:"${leafletUrl}"});
+  fetch("${leafletUrl}")
     .then(function(r){
-      if(!r.ok)throw new Error('HTTP '+r.status);
+      if(!r.ok)throw new Error("HTTP "+r.status);
       return r.text();
     })
     .then(function(code){
-      pm({type:'leaflet_fetched',bytes:code.length});
-      // Inject as dynamic script element — allowed by 'unsafe-inline' CSP
-      var s=document.createElement('script');
+      pm({type:"leaflet_fetched",bytes:code.length});
+      var s=document.createElement("script");
       s.textContent=code;
       document.head.appendChild(s);
-      pm({type:'leaflet_injected',L_defined:typeof L!=='undefined'});
-      if(typeof L==='undefined'){showError('L not defined after Leaflet inject');return;}
+      pm({type:"leaflet_injected",L_defined:typeof L!=="undefined"});
+      if(typeof L==="undefined"){showError("L not defined after inject");return;}
       initMap();
     })
     .catch(function(e){
-      showError('Leaflet fetch failed: '+e.message);
+      showError("Leaflet fetch: "+e.message);
     });
 })();
 true;`;
