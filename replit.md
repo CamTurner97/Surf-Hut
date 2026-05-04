@@ -57,7 +57,7 @@ The backend caches Open-Meteo responses (30-min TTL) and computes a 1–10 surf 
 |---|---|
 | Monorepo | pnpm workspaces |
 | Mobile | React Native via Expo |
-| Map | Mapbox (`@rnmapbox/maps`) — requires user-supplied access token |
+| Map | Leaflet via react-native-webview (Expo Go compatible; Mapbox for future dev builds) |
 | Mobile state | TanStack Query |
 | Local storage | AsyncStorage |
 | Backend | Express 5 + TypeScript (existing `artifacts/api-server`) |
@@ -125,12 +125,13 @@ The user wants to review and tweak after every task. Each task ends with a previ
 - T08 Endpoint handlers with Zod validation
 
 ### Phase 2 — Mobile Core
-- T09 Mapbox setup with user-supplied token
-- T10 Map screen with pins and bottom sheet
-- T11 Beach detail screen (hero, surf, weather, tide, 24h strip)
-- T12 List view + map/list toggle
-- T13 Pull-to-refresh
-- T14 Search/filter
+- T09 Map screen with colour-coded pins — COMPLETE (Leaflet via WebView, injectedJavaScript approach)
+  - Key finding: Android Expo Go WebView blocks inline `<script>` tags; `injectedJavaScript` prop works.
+  - HTML shell + beach JSON served from /api/map; Leaflet fetched inside WebView from /api/static/leaflet.min.js
+- T10 Beach detail screen (hero, surf, weather, tide, 24h strip)
+- T11 List view + map/list toggle
+- T12 Pull-to-refresh
+- T13 Search/filter
 
 ### Phase 3 — Local Features
 - T15 Favourites screen + AsyncStorage

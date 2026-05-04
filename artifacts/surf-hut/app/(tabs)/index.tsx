@@ -1,78 +1,63 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
 import { useColors } from "@/hooks/useColors";
+import { useBeaches } from "@/hooks/useBeaches";
+import { SydneyMap } from "@/components/map/SydneyMap";
+import type { Beach } from "@workspace/api-client-react";
 
 export default function MapTab() {
   const colors = useColors();
-  return (
-    <PlaceholderScreen
-      icon="map"
-      title="Sydney conditions, at a glance"
-      body="A live map of Sydney's surf coast is coming next. Tap any beach pin to see the wave height, wind, swell and weather right now."
-      accent="primary"
-      footer="20 BEACHES  ·  POWERED BY OPEN-METEO"
-    >
-      <View style={[styles.legend, { borderColor: colors.border }]}>
-        <View style={styles.legendRow}>
-          <View
-            style={[styles.dot, { backgroundColor: colors.accent }]}
-          />
-          <Text
-            style={[styles.legendLabel, { color: colors.foreground }]}
-          >
-            Firing
-          </Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={[styles.dot, { backgroundColor: colors.primary }]} />
-          <Text
-            style={[styles.legendLabel, { color: colors.foreground }]}
-          >
-            Worth a paddle
-          </Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View
-            style={[
-              styles.dot,
-              { backgroundColor: colors.mutedForeground },
-            ]}
-          />
-          <Text
-            style={[styles.legendLabel, { color: colors.foreground }]}
-          >
-            Flat / blown out
-          </Text>
-        </View>
+  const { data, isLoading, error } = useBeaches();
+
+  if (error) {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.destructive }]}>
+          Could not load beaches.
+        </Text>
+        <Text style={[styles.errorHint, { color: colors.mutedForeground }]}>
+          Check your connection and try again.
+        </Text>
       </View>
-    </PlaceholderScreen>
+    );
+  }
+
+  const beaches: Beach[] = data?.beaches ?? [];
+
+  function handleBeachPress(beach: Beach) {
+    // Beach detail screen coming in T11
+    console.log("Tapped:", beach.id);
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SydneyMap
+        beaches={beaches}
+        loading={isLoading}
+        onBeachPress={handleBeachPress}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  legend: {
-    width: "100%",
-    maxWidth: 320,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    gap: 12,
-  },
-  legendRow: {
-    flexDirection: "row",
+  container: { flex: 1 },
+  centered: {
+    flex: 1,
     alignItems: "center",
-    gap: 12,
+    justifyContent: "center",
+    padding: 32,
+    gap: 8,
   },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  errorText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    textAlign: "center",
   },
-  legendLabel: {
-    fontFamily: "Inter_500Medium",
+  errorHint: {
+    fontFamily: "Inter_400Regular",
     fontSize: 14,
+    textAlign: "center",
   },
 });
