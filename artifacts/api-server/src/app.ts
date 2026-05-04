@@ -10,6 +10,9 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const app: Express = express();
 
+// CORS must come before static so Leaflet files have the header
+app.use(cors());
+
 // Self-hosted static assets (Leaflet, etc.) served at /api/static
 app.use("/api/static", express.static(join(__dirname, "../public")));
 
@@ -32,7 +35,6 @@ app.use(
     },
   }),
 );
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

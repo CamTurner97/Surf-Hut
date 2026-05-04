@@ -231,7 +231,7 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
       <WebView
         ref={webViewRef}
         style={styles.map}
-        source={{ html: fetchState.html, baseUrl: MAP_HTML_URL }}
+        source={{ html: fetchState.html }}
         injectedJavaScript={injectedJs}
         onMessage={handleMessage}
         javaScriptEnabled
