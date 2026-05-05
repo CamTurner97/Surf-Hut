@@ -256,19 +256,19 @@ title = "Queenscliff"
 id = "vtYyD5wBX90ujASfAcpKW"
 uri = "file://attached_assets/beach_images/north-steyne.png"
 type = "image"
-title = "12. North Steyne / Manly (stock photo)"
+title = "North Steyne / Manly"
 
 [[outputs]]
 id = "Ar_zyiNqRNeRFJhtMeYE2"
 uri = "file://attached_assets/beach_images/south-steyne.png"
 type = "image"
-title = "13. South Steyne / Manly (stock photo)"
+title = "South Steyne / Manly"
 
 [[outputs]]
 id = "9PBIlOAHp7J1DCIKycJmu"
 uri = "file://attached_assets/beach_images/bondi.png"
 type = "image"
-title = "Bondi Beach"
+title = "Bondi"
 
 [[outputs]]
 id = "wz_qgPDNzIHwLGttCMkX0"
@@ -280,25 +280,25 @@ title = "Tamarama"
 id = "7TJ25HlJ0RPo_ikHDIROw"
 uri = "file://attached_assets/beach_images/bronte.png"
 type = "image"
-title = "16. Bronte (stock photo)"
+title = "Bronte"
 
 [[outputs]]
 id = "Mmg0FgdZunokvoKS5mbN2"
 uri = "file://attached_assets/beach_images/maroubra.png"
 type = "image"
-title = "17. Maroubra (stock photo)"
+title = "Maroubra"
 
 [[outputs]]
 id = "wcjczHHp3Ssd3hLaMYUn7"
 uri = "file://attached_assets/beach_images/wanda.png"
 type = "image"
-title = "18. Wanda (stock photo)"
+title = "Wanda"
 
 [[outputs]]
 id = "D_Fl8icBeKwBVcdGNO2LD"
 uri = "file://attached_assets/beach_images/north-cronulla.png"
 type = "image"
-title = "19. North Cronulla (stock photo)"
+title = "North Cronulla"
 
 [[outputs]]
 id = "5fsuM-95X0_qvjp5J97Vd"
