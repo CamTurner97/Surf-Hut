@@ -89,16 +89,14 @@ function makeInjectedJs(leafletUrl: string): string {
         });
         var badgeHtml=b.label?"<span class=\\"badge\\" style=\\"background:"+color+"\\">"+b.label+"</span>":"";
         var scoreHtml=b.score!=null?"<span class=\\"popup-score\\">"+b.score+"/10</span>":"";
-        var imgHtml=b.imageUrl?"<img class=\\"popup-img\\" src=\\""+b.imageUrl+"\\" />":"";
         // Use data-id attribute — avoids any quote-nesting problem in onclick
         var popupHtml="<div class=\\"popup-box\\">"
-          +imgHtml
           +"<div class=\\"popup-name\\">"+b.name+"</div>"
           +"<div class=\\"popup-row\\">"+badgeHtml+scoreHtml+"</div>"
           +"<div class=\\"popup-hint\\" data-beach-id=\\""+b.id+"\\">Tap for full report \u2192</div>"
           +"</div>";
         var marker=L.marker([b.lat,b.lng],{icon:icon}).addTo(map);
-        marker.bindPopup(popupHtml,{closeButton:false,maxWidth:240});
+        marker.bindPopup(popupHtml,{closeButton:false,maxWidth:220});
         // Attach click handler after popup opens (data-id approach)
         (function(beachId){
           marker.on("popupopen",function(){
