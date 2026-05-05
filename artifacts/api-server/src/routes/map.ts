@@ -28,6 +28,7 @@ router.get("/map", async (req, res, next) => {
         name: beachesTable.name,
         latitude: beachesTable.latitude,
         longitude: beachesTable.longitude,
+        heroImageUrl: beachesTable.heroImageUrl,
         latestScore: surfReportsTable.score,
         latestScoreLabel: surfReportsTable.scoreLabel,
       })
@@ -45,6 +46,7 @@ router.get("/map", async (req, res, next) => {
       lng: r.longitude,
       score: r.latestScore,
       label: r.latestScoreLabel,
+      imageUrl: r.heroImageUrl,
     }));
 
     const beachesJson = JSON.stringify(beaches);
@@ -116,9 +118,10 @@ router.get("/map", async (req, res, next) => {
     .legend-row:last-child{margin-bottom:0}
     .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 
-    .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+    .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden}
     .leaflet-popup-content{margin:12px 14px}
     .leaflet-popup-tip-container{display:none}
+    .popup-img{display:block;width:calc(100% + 28px);height:100px;object-fit:cover;margin:-12px -14px 10px -14px;border-radius:0}
     .leaflet-control-zoom a{border-radius:8px!important}
   </style>
 </head>
