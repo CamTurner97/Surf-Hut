@@ -10,7 +10,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Sydney's northernmost surf beach. Long, exposed sweep that picks up most swells; can get crowded on the south corner when it's working.",
-    heroImageUrl: "/beaches/palm-beach.png",
+    heroImageUrl: "/api/images/palm-beach.png",
   },
   {
     id: "avalon",
@@ -21,7 +21,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Powerful beach break flanked by headlands. Best at mid-tide with a clean east swell and offshore westerlies.",
-    heroImageUrl: "/beaches/avalon.png",
+    heroImageUrl: "/api/images/avalon.png",
   },
   {
     id: "newport",
@@ -32,7 +32,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Reliable peaks across a long stretch of sand. Handles a bit of size and is a Northern Beaches staple for all levels.",
-    heroImageUrl: "/beaches/newport.png",
+    heroImageUrl: "/api/images/newport.png",
   },
   {
     id: "north-narrabeen",
@@ -43,7 +43,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Sydney's most famous performance wave. The lefts off the rocks at the northern end are a world-class playground when it lines up.",
-    heroImageUrl: "/beaches/north-narrabeen.png",
+    heroImageUrl: "/api/images/north-narrabeen.png",
   },
   {
     id: "collaroy",
@@ -54,7 +54,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Sheltered southern corner is a local favourite when the swell is up and the wind is unfriendly elsewhere.",
-    heroImageUrl: "/beaches/collaroy.png",
+    heroImageUrl: "/api/images/collaroy.png",
   },
   {
     id: "long-reef",
@@ -65,7 +65,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "NE",
     description:
       "Long, mellow point break wrapping around the headland. A patient longboarder's wave on a clean east swell.",
-    heroImageUrl: "/beaches/long-reef.png",
+    heroImageUrl: "/api/images/long-reef.png",
   },
   {
     id: "dee-why",
@@ -76,7 +76,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Punchy peaks along the main beach plus a heaving reef break on the south side that only the brave paddle out for.",
-    heroImageUrl: "/beaches/dee-why.png",
+    heroImageUrl: "/api/images/dee-why.png",
   },
   {
     id: "north-curl-curl",
@@ -87,7 +87,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Sand-bottom wedges that turn on with east-southeast swell. Less crowded than its big neighbours.",
-    heroImageUrl: "/beaches/north-curl-curl.png",
+    heroImageUrl: "/api/images/north-curl-curl.png",
   },
   {
     id: "south-curl-curl",
@@ -98,7 +98,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Fast, hollow beach break with a strong rip on bigger days. A core local crew make this their morning lap.",
-    heroImageUrl: "/beaches/south-curl-curl.png",
+    heroImageUrl: "/api/images/south-curl-curl.png",
   },
   {
     id: "freshwater",
@@ -109,7 +109,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Where Duke Kahanamoku surfed in 1915. Protected from southerlies and offers fun beach break peaks across all tides.",
-    heroImageUrl: "/beaches/freshwater.png",
+    heroImageUrl: "/api/images/freshwater.png",
   },
   {
     id: "queenscliff",
@@ -120,7 +120,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Northern end of the Manly stretch. Bombora reef on bigger days and a forgiving beach break in between.",
-    heroImageUrl: "/beaches/queenscliff.png",
+    heroImageUrl: "/api/images/queenscliff.png",
   },
   {
     id: "north-steyne",
@@ -131,7 +131,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "The middle stretch of Manly Beach. Plenty of peaks and easy access — a great spot for a quick after-work surf.",
-    heroImageUrl: "/beaches/north-steyne.png",
+    heroImageUrl: "/api/images/north-steyne.png",
   },
   {
     id: "south-steyne",
@@ -142,7 +142,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Manly's southern corner. Sheltered when the wind swings south and the busiest spot in town for board hire and lessons.",
-    heroImageUrl: "/beaches/south-steyne.png",
+    heroImageUrl: "/api/images/south-steyne.png",
   },
   {
     id: "bondi",
@@ -153,7 +153,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "SE",
     description:
       "Sydney's icon. Backpackers in the middle, locals on the south corner and longboarders up north — something for everyone.",
-    heroImageUrl: "/beaches/bondi.png",
+    heroImageUrl: "/api/images/bondi.png",
   },
   {
     id: "tamarama",
@@ -164,7 +164,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Tiny pocket beach with a punchy shore break and notorious rips. Watch it for a session before paddling out.",
-    heroImageUrl: "/beaches/tamarama.png",
+    heroImageUrl: "/api/images/tamarama.png",
   },
   {
     id: "bronte",
@@ -175,7 +175,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Compact beach with a strong rip down the middle (the Bronte Express) and shifty peaks on either side.",
-    heroImageUrl: "/beaches/bronte.png",
+    heroImageUrl: "/api/images/bronte.png",
   },
   {
     id: "maroubra",
@@ -186,7 +186,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Long, exposed beach that handles size better than most in the east. Three distinct ends: north, middle and south.",
-    heroImageUrl: "/beaches/maroubra.png",
+    heroImageUrl: "/api/images/maroubra.png",
   },
   {
     id: "wanda",
@@ -197,7 +197,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Northern end of the long Cronulla strip. Quieter beach break peaks away from the crowds at Cronulla Point.",
-    heroImageUrl: "/beaches/wanda.png",
+    heroImageUrl: "/api/images/wanda.png",
   },
   {
     id: "north-cronulla",
@@ -208,7 +208,7 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "E",
     description:
       "Consistent beach break with easy access from the esplanade. Picks up east, north-east and south swell.",
-    heroImageUrl: "/beaches/north-cronulla.png",
+    heroImageUrl: "/api/images/north-cronulla.png",
   },
   {
     id: "cronulla-point",
@@ -219,6 +219,6 @@ export const SYDNEY_BEACHES: Beach[] = [
     facingDirection: "SE",
     description:
       "A long, hollow right-hand point break. Cronulla's crown jewel and ferociously protected by locals when it's pumping.",
-    heroImageUrl: "/beaches/cronulla-point.png",
+    heroImageUrl: "/api/images/cronulla-point.png",
   },
 ];

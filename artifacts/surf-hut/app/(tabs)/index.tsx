@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -26,8 +27,7 @@ export default function MapTab() {
   const beaches: Beach[] = data?.beaches ?? [];
 
   function handleBeachPress(beach: Beach) {
-    // Beach detail screen coming in T11
-    console.log("Tapped:", beach.id);
+    router.push({ pathname: "/beach/[id]", params: { id: beach.id } });
   }
 
   return (
