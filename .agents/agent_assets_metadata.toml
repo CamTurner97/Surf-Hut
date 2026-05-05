@@ -66,6 +66,66 @@ uri = "file://artifacts/surf-hut/assets/images/icon.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "-byq7w0q1aHrn73v2jO85"
+uri = "file://attached_assets/beach_images/queenscliff.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "2bbV71DexkBes5wVFiJ2p"
+uri = "file://attached_assets/beach_images/north-steyne.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "n_8YrBcPC5Ul2hj-wqpir"
+uri = "file://attached_assets/beach_images/south-steyne.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "NeyMj1lwrywEcXibWmigJ"
+uri = "file://attached_assets/beach_images/bondi.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "fOdmR-7SVmZvobrEIpV_g"
+uri = "file://attached_assets/beach_images/tamarama.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "UU9vwb3ef2HByUg_YRjS_"
+uri = "file://attached_assets/beach_images/bronte.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "2o4_vQTB-G_wIRexmWfrm"
+uri = "file://attached_assets/beach_images/maroubra.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "drS0SrqOsYeah0A93rPhP"
+uri = "file://attached_assets/beach_images/wanda.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "g9WSkO5S6RSb9exvxI1d7"
+uri = "file://attached_assets/beach_images/north-cronulla.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "FlD9GIxgYhamlN3sXIpDs"
+uri = "file://attached_assets/beach_images/cronulla-point.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "RUt91w54uec-oKYm6GGor"
 uri = "file://attached_assets/stock_images/queenscliff.jpg"
@@ -208,13 +268,13 @@ title = "13. South Steyne / Manly (stock photo)"
 id = "9PBIlOAHp7J1DCIKycJmu"
 uri = "file://attached_assets/beach_images/bondi.png"
 type = "image"
-title = "14. Bondi (stock photo)"
+title = "Bondi Beach"
 
 [[outputs]]
 id = "wz_qgPDNzIHwLGttCMkX0"
 uri = "file://attached_assets/beach_images/tamarama.png"
 type = "image"
-title = "15. Tamarama (stock photo)"
+title = "Tamarama"
 
 [[outputs]]
 id = "7TJ25HlJ0RPo_ikHDIROw"
@@ -244,4 +304,4 @@ title = "19. North Cronulla (stock photo)"
 id = "5fsuM-95X0_qvjp5J97Vd"
 uri = "file://attached_assets/beach_images/cronulla-point.png"
 type = "image"
-title = "20. Cronulla Point (stock photo)"
+title = "Cronulla Point"
