@@ -61,13 +61,13 @@ router.get("/map", async (req, res, next) => {
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%;width:100%;overflow:hidden}
-    #map{position:fixed;top:0;left:0;right:0;bottom:0;background:#c8dce8}
+    #map{position:fixed;top:0;left:0;right:0;bottom:0;background:#e8e0d8}
 
     #loading{
       position:fixed;top:0;left:0;right:0;bottom:0;
       display:flex;flex-direction:column;
       align-items:center;justify-content:center;
-      background:#c8dce8;z-index:9999;
+      background:#FAF7F2;z-index:9999;
       font-family:-apple-system,BlinkMacSystemFont,sans-serif;
     }
     #loading .dot{
@@ -76,13 +76,13 @@ router.get("/map", async (req, res, next) => {
       animation:pulse 1.2s ease-in-out infinite;
     }
     @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.7}}
-    #loading .txt{font-size:16px;font-weight:600;color:#1a2f3a}
-    #loading .sub{font-size:13px;color:#4a6070;margin-top:6px}
+    #loading .txt{font-size:16px;font-weight:600;color:#333}
+    #loading .sub{font-size:13px;color:#888;margin-top:6px}
 
     #error-box{
       display:none;position:fixed;top:0;left:0;right:0;bottom:0;
       flex-direction:column;align-items:center;justify-content:center;
-      background:#c8dce8;z-index:9999;padding:32px;
+      background:#FAF7F2;z-index:9999;padding:32px;
       font-family:-apple-system,BlinkMacSystemFont,sans-serif;
     }
     #error-box .etitle{font-size:16px;font-weight:700;color:#c0392b;margin-bottom:8px}
@@ -94,33 +94,32 @@ router.get("/map", async (req, res, next) => {
       display:flex;align-items:center;justify-content:center;
       font-family:-apple-system,BlinkMacSystemFont,sans-serif;
       font-weight:700;font-size:13px;color:#fff;
-      box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer;
+      box-shadow:0 2px 6px rgba(0,0,0,.32);cursor:pointer;
     }
     .popup-box{font-family:-apple-system,BlinkMacSystemFont,sans-serif;min-width:160px}
-    .popup-name{font-weight:600;font-size:15px;color:#1a2f3a;margin-bottom:6px}
+    .popup-name{font-weight:600;font-size:15px;color:#1a1a1a;margin-bottom:6px}
     .popup-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
     .badge{border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;color:#fff}
-    .popup-score{font-size:13px;color:#4a6070}
+    .popup-score{font-size:13px;color:#666}
     .popup-hint{font-size:11px;color:#E36322;margin-top:6px;cursor:pointer;font-weight:600}
 
     .legend{
       position:fixed;bottom:24px;right:12px;
-      background:rgba(255,255,255,.92);border-radius:12px;
+      background:rgba(250,247,242,.96);border-radius:12px;
       padding:10px 14px;z-index:1000;
       font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-      font-size:12px;color:#1a2f3a;
-      box-shadow:0 2px 8px rgba(0,0,0,.15);pointer-events:none;
+      font-size:12px;color:#333;
+      box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none;
       display:none;
     }
     .legend-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
     .legend-row:last-child{margin-bottom:0}
     .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 
-    .leaflet-popup-content-wrapper{border-radius:12px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+    .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
     .leaflet-popup-content{margin:12px 14px}
     .leaflet-popup-tip-container{display:none}
-    .leaflet-control-zoom a{border-radius:8px!important;background:#fff!important;color:#1a2f3a!important;border-color:#c8dce8!important}
-    .leaflet-control-zoom a:hover{background:#f0f6fa!important}
+    .leaflet-control-zoom a{border-radius:8px!important}
   </style>
 </head>
 <body>
