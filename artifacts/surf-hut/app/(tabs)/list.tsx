@@ -2,12 +2,15 @@ import { router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  LayoutAnimation,
+  Platform,
   Pressable,
   RefreshControl,
   SectionList,
   StyleSheet,
   Text,
   TextInput,
+  UIManager,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +18,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useBeaches } from "@/hooks/useBeaches";
 import type { Beach, Region } from "@workspace/api-client-react";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const SCORE_COLORS: Record<string, string> = {
   Epic: "#E36322",
@@ -99,14 +106,23 @@ function BeachRow({
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({
+  title,
+  collapsed,
+  onToggle,
+}: {
+  title: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   const colors = useColors();
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={onToggle}
+      style={({ pressed }) => [
         styles.sectionHeader,
         {
-          backgroundColor: colors.background,
+          backgroundColor: pressed ? colors.muted : colors.background,
           borderBottomColor: colors.border,
         },
       ]}
@@ -114,7 +130,10 @@ function SectionHeader({ title }: { title: string }) {
       <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
         {title.toUpperCase()}
       </Text>
-    </View>
+      <Text style={[styles.sectionChevron, { color: colors.mutedForeground }]}>
+        {collapsed ? "›" : "⌄"}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -122,8 +141,22 @@ export default function ListTab() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const { data, isLoading, error, refetch, isRefetching } = useBeaches();
+
+  const toggleSection = useCallback((title: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+      return next;
+    });
+  }, []);
 
   const sections = useMemo(() => {
     const beaches = data?.beaches ?? [];
@@ -134,15 +167,20 @@ export default function ListTab() {
 
     if (q) {
       return filtered.length > 0
-        ? [{ title: "Results", data: filtered }]
+        ? [{ title: "Results", data: filtered, collapsed: false }]
         : [];
     }
 
-    return REGION_ORDER.map((region) => ({
-      title: REGION_LABELS[region],
-      data: filtered.filter((b) => b.region === region),
-    })).filter((s) => s.data.length > 0);
-  }, [data, query]);
+    return REGION_ORDER.map((region) => {
+      const title = REGION_LABELS[region];
+      const isCollapsed = collapsed.has(title);
+      return {
+        title,
+        collapsed: isCollapsed,
+        data: isCollapsed ? [] : filtered.filter((b) => b.region === region),
+      };
+    });
+  }, [data, query, collapsed]);
 
   const handlePress = useCallback((beach: Beach) => {
     router.push({ pathname: "/beach/[id]", params: { id: beach.id } });
@@ -208,7 +246,11 @@ export default function ListTab() {
           <BeachRow beach={item} onPress={() => handlePress(item)} />
         )}
         renderSectionHeader={({ section }) => (
-          <SectionHeader title={section.title} />
+          <SectionHeader
+            title={section.title}
+            collapsed={section.collapsed}
+            onToggle={() => toggleSection(section.title)}
+          />
         )}
         stickySectionHeadersEnabled
         refreshControl={
@@ -284,6 +326,9 @@ const styles = StyleSheet.create({
   },
 
   sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 6,
@@ -293,6 +338,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     fontSize: 11,
     letterSpacing: 0.8,
+  },
+  sectionChevron: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: "400",
   },
 
   row: {
