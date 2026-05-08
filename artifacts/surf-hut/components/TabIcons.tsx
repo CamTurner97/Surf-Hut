@@ -43,3 +43,15 @@ export function HeartOutlineIcon({ color, size = 22 }: Props) {
     </Svg>
   );
 }
+
+export function HeartFilledIcon({ color, size = 22 }: Props) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 20.5s-7.5-4.4-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7C19.5 16.1 12 20.5 12 20.5z"
+        fill={color}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
