@@ -77,7 +77,7 @@ function makeInjectedJs(leafletUrl: string): string {
     try{
       var map=L.map("map",{zoomControl:false,attributionControl:false})
         .setView([-33.86,151.21],11);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap &copy; CARTO"}).addTo(map);
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",{maxZoom:13,attribution:"ESRI Ocean Basemap"}).addTo(map);
       L.control.zoom({position:"topright"}).addTo(map);
 
       BEACHES.forEach(function(b){
@@ -261,7 +261,7 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  map: { flex: 1, backgroundColor: "#141420" },
+  map: { flex: 1, backgroundColor: "#c8dce8" },
   centered: {
     flex: 1,
     alignItems: "center",
