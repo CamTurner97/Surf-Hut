@@ -15,6 +15,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useBeaches } from "@/hooks/useBeaches";
 import { useBeachReport } from "@/hooks/useBeachReport";
+import { useFavourites } from "@/hooks/useFavourites";
+import { HeartOutlineIcon, HeartFilledIcon } from "@/components/TabIcons";
 import type { SurfReport } from "@workspace/api-client-react";
 
 const SCORE_COLORS: Record<string, string> = {
@@ -195,6 +197,8 @@ export default function BeachDetailScreen() {
   const beach = beachList?.beaches.find((b) => b.id === id);
 
   const { data: report, isLoading, error } = useBeachReport(id ?? "");
+  const { isFavourite, toggleFavourite } = useFavourites();
+  const favourited = id ? isFavourite(id) : false;
 
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   const heroUrl =
@@ -220,7 +224,7 @@ export default function BeachDetailScreen() {
           />
         )}
 
-        {/* Top gradient + back button */}
+        {/* Top gradient + back button + heart */}
         <LinearGradient
           colors={["rgba(0,0,0,0.58)", "rgba(0,0,0,0.0)"]}
           style={[styles.heroTop, { paddingTop: insets.top + 8 }]}
@@ -232,6 +236,17 @@ export default function BeachDetailScreen() {
           >
             <Text style={styles.backArrow}>‹</Text>
             <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => id && toggleFavourite(id)}
+            style={styles.heartBtn}
+            hitSlop={12}
+          >
+            {favourited ? (
+              <HeartFilledIcon color="#E36322" size={26} />
+            ) : (
+              <HeartOutlineIcon color="#FFFFFF" size={26} />
+            )}
           </Pressable>
         </LinearGradient>
 
@@ -296,6 +311,12 @@ const styles = StyleSheet.create({
     right: 0,
     height: 110,
     paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  heartBtn: {
+    paddingTop: 4,
   },
   heroBottom: {
     position: "absolute",

@@ -134,7 +134,10 @@ The user wants to review and tweak after every task. Each task ends with a previ
 - T13 Search/filter
 
 ### Phase 3 — Local Features
-- T15 Favourites screen + AsyncStorage
+- T15 Favourites screen + AsyncStorage — COMPLETE
+  - Heart button on beach detail screen (hero top-right)
+  - Favourites tab: flat list of saved beaches with score badges, region subtitle, empty state
+- T15b Map favourites filter toggle (next task)
 - T16 Settings screen (units, about, credits)
 - T17 Offline cache with stale-data indicator
 
