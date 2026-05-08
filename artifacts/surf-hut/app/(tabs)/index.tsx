@@ -1,21 +1,15 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { HeartFilledIcon, HeartOutlineIcon } from "@/components/TabIcons";
-import { useBeaches } from "@/hooks/useBeaches";
-import { useFavourites } from "@/hooks/useFavourites";
 import { useColors } from "@/hooks/useColors";
+import { useBeaches } from "@/hooks/useBeaches";
 import { SydneyMap } from "@/components/map/SydneyMap";
 import type { Beach } from "@workspace/api-client-react";
 
 export default function MapTab() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useBeaches();
-  const { favouriteIds } = useFavourites();
-  const [favOnly, setFavOnly] = useState(false);
 
   if (error) {
     return (
@@ -30,16 +24,11 @@ export default function MapTab() {
     );
   }
 
-  const allBeaches: Beach[] = data?.beaches ?? [];
-  const beaches = favOnly
-    ? allBeaches.filter((b) => favouriteIds.includes(b.id))
-    : allBeaches;
+  const beaches: Beach[] = data?.beaches ?? [];
 
   function handleBeachPress(beach: Beach) {
     router.push({ pathname: "/beach/[id]", params: { id: beach.id } });
   }
-
-  const hasFavourites = favouriteIds.length > 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -48,36 +37,6 @@ export default function MapTab() {
         loading={isLoading}
         onBeachPress={handleBeachPress}
       />
-
-      {/* Favourites filter toggle — only shown once at least one beach is saved */}
-      {hasFavourites && (
-        <Pressable
-          onPress={() => setFavOnly((v) => !v)}
-          style={[
-            styles.toggleBtn,
-            {
-              top: insets.top + 12,
-              backgroundColor: favOnly ? colors.primary : colors.card,
-              borderColor: favOnly ? colors.primary : colors.border,
-              shadowColor: "#000",
-            },
-          ]}
-        >
-          {favOnly ? (
-            <HeartFilledIcon color="#FFFFFF" size={16} />
-          ) : (
-            <HeartOutlineIcon color={colors.mutedForeground} size={16} />
-          )}
-          <Text
-            style={[
-              styles.toggleLabel,
-              { color: favOnly ? "#FFFFFF" : colors.mutedForeground },
-            ]}
-          >
-            {favOnly ? "My spots" : "My spots"}
-          </Text>
-        </Pressable>
-      )}
     </View>
   );
 }
@@ -100,24 +59,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     textAlign: "center",
-  },
-  toggleBtn: {
-    position: "absolute",
-    left: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  toggleLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
   },
 });

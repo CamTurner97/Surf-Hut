@@ -137,7 +137,7 @@ The user wants to review and tweak after every task. Each task ends with a previ
 - T15 Favourites screen + AsyncStorage — COMPLETE
   - Heart button on beach detail screen (hero top-right)
   - Favourites tab: flat list of saved beaches with score badges, region subtitle, empty state
-  - Map toggle: floating "My spots" pill on the map filters pins to favourites only (appears once ≥1 beach is saved)
+- T15b Map favourites filter toggle (next task)
 - T16 Settings screen (units, about, credits)
 - T17 Offline cache with stale-data indicator
 
