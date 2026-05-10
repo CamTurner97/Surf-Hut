@@ -13,6 +13,7 @@ interface SydneyMapProps {
   beaches: Beach[];
   loading?: boolean;
   onBeachPress?: (beach: Beach) => void;
+  filterIds?: string[] | null;
 }
 
 export function SydneyMap({ beaches }: SydneyMapProps) {

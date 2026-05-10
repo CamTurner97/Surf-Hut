@@ -15,36 +15,30 @@ interface SydneyMapProps {
   beaches: Beach[];
   loading?: boolean;
   onBeachPress?: (beach: Beach) => void;
+  /** When set, only these beach IDs are shown. null/undefined = show all. */
+  filterIds?: string[] | null;
 }
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 const MAP_HTML_URL = domain ? `https://${domain}/api/map` : null;
-// Leaflet is served from /api/static/ — fetched inside the WebView's own
-// JS context so it never crosses the React Native bridge.
 const LEAFLET_URL = domain
   ? `https://${domain}/api/static/leaflet.min.js`
   : null;
 
 /**
- * Small injectedJavaScript bootstrap (~2 KB).
+ * Small injectedJavaScript bootstrap.
  *
  * Strategy (confirmed working via diagnostic):
  *   1. injectedJavaScript runs after DOMContentLoaded — bypasses Android's
  *      inline-<script> CSP block.
- *   2. We keep this string tiny to avoid React Native bridge size limits.
- *   3. Leaflet (144 KB) is fetched INSIDE the WebView's own network stack,
- *      injected as a dynamic <script> element (allowed by 'unsafe-inline' CSP),
- *      then the map is initialised.
- *   4. Beach data comes from a <script type="application/json"> block in the
+ *   2. Leaflet (144 KB) is fetched INSIDE the WebView's own network stack,
+ *      injected as a dynamic <script> element, then the map is initialised.
+ *   3. Beach data comes from a <script type="application/json"> block in the
  *      HTML — never executed, never blocked.
- *   5. Every step posts a diagnostic message so Expo console can report it.
+ *   4. Markers are stored in window.MARKERS by beach ID so filterBeaches()
+ *      can show/hide individual pins via injectJavaScript from React Native.
  */
 function makeInjectedJs(leafletUrl: string): string {
-  // IMPORTANT: this string is a TypeScript template literal.
-  // \'  inside a template literal is NOT a valid escape — the backslash is
-  // consumed and you get a bare ' which breaks the inner JS string literals.
-  // Rule: use only double-quoted strings inside this template literal, or
-  // single-quoted strings that never need an internal escaped single quote.
   return `(function(){
   function pm(obj){
     try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(obj));}catch(e){}
@@ -72,11 +66,31 @@ function makeInjectedJs(leafletUrl: string): string {
   window.postMsg=function(data){pm(data);};
   function pinColor(label){return COLORS[label]||"#B8B0A6";}
 
+  // Markers stored by beach ID so we can show/hide them later
+  window.MARKERS={};
+  window.MAP=null;
+
+  // Filter the map to show only the given IDs (empty array or null = show all)
+  window.filterBeaches=function(ids){
+    if(!window.MAP||!window.MARKERS)return;
+    var showAll=!ids||ids.length===0;
+    Object.keys(window.MARKERS).forEach(function(id){
+      var marker=window.MARKERS[id];
+      if(showAll||ids.indexOf(id)!==-1){
+        if(!window.MAP.hasLayer(marker))marker.addTo(window.MAP);
+      }else{
+        if(window.MAP.hasLayer(marker))window.MAP.removeLayer(marker);
+      }
+    });
+    pm({type:"filter_applied",count:showAll?-1:ids.length});
+  };
+
   function initMap(){
     pm({type:"init_map"});
     try{
       var map=L.map("map",{zoomControl:false,attributionControl:false})
         .setView([-33.86,151.21],11);
+      window.MAP=map;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
       L.control.zoom({position:"topright"}).addTo(map);
 
@@ -89,7 +103,6 @@ function makeInjectedJs(leafletUrl: string): string {
         });
         var badgeHtml=b.label?"<span class=\\"badge\\" style=\\"background:"+color+"\\">"+b.label+"</span>":"";
         var scoreHtml=b.score!=null?"<span class=\\"popup-score\\">"+b.score+"/10</span>":"";
-        // Use data-id attribute — avoids any quote-nesting problem in onclick
         var popupHtml="<div class=\\"popup-box\\">"
           +"<div class=\\"popup-name\\">"+b.name+"</div>"
           +"<div class=\\"popup-row\\">"+badgeHtml+scoreHtml+"</div>"
@@ -97,7 +110,7 @@ function makeInjectedJs(leafletUrl: string): string {
           +"</div>";
         var marker=L.marker([b.lat,b.lng],{icon:icon}).addTo(map);
         marker.bindPopup(popupHtml,{closeButton:false,maxWidth:220});
-        // Attach click handler after popup opens (data-id approach)
+        window.MARKERS[b.id]=marker;
         (function(beachId){
           marker.on("popupopen",function(){
             var el=document.querySelector("[data-beach-id=\\""+beachId+"\\"]");
@@ -146,14 +159,16 @@ type FetchState =
   | { status: "ready"; html: string }
   | { status: "error"; message: string };
 
-export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
+export function SydneyMap({ beaches, onBeachPress, filterIds }: SydneyMapProps) {
   const colors = useColors();
   const webViewRef = useRef<WebView>(null);
   const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
+  const mapReadyRef = useRef(false);
 
   useEffect(() => {
     if (!MAP_HTML_URL) return;
     setFetchState({ status: "loading" });
+    mapReadyRef.current = false;
 
     const controller = new AbortController();
     fetch(MAP_HTML_URL, { signal: controller.signal })
@@ -171,6 +186,17 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
     return () => controller.abort();
   }, []);
 
+  // Push filter changes into the WebView whenever filterIds changes
+  useEffect(() => {
+    if (!mapReadyRef.current) return;
+    const idsJson = filterIds && filterIds.length > 0
+      ? JSON.stringify(filterIds)
+      : "null";
+    webViewRef.current?.injectJavaScript(
+      `if(typeof window.filterBeaches==="function"){window.filterBeaches(${idsJson});}true;`
+    );
+  }, [filterIds]);
+
   const injectedJs =
     MAP_HTML_URL && LEAFLET_URL ? makeInjectedJs(LEAFLET_URL) : "";
 
@@ -183,8 +209,18 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
           message?: string;
           [key: string]: unknown;
         };
-        // Log all diagnostic messages to Expo console
         console.log("[SydneyMap]", JSON.stringify(msg));
+
+        if (msg.type === "map_ready") {
+          mapReadyRef.current = true;
+          // Apply any pending filter immediately after map is ready
+          if (filterIds && filterIds.length > 0) {
+            const idsJson = JSON.stringify(filterIds);
+            webViewRef.current?.injectJavaScript(
+              `if(typeof window.filterBeaches==="function"){window.filterBeaches(${idsJson});}true;`
+            );
+          }
+        }
 
         if (msg.type === "beach_press" && msg.id) {
           const beach = beaches.find((b) => b.id === msg.id);
@@ -194,7 +230,7 @@ export function SydneyMap({ beaches, onBeachPress }: SydneyMapProps) {
         // ignore
       }
     },
-    [beaches, onBeachPress],
+    [beaches, onBeachPress, filterIds],
   );
 
   if (!MAP_HTML_URL) {
