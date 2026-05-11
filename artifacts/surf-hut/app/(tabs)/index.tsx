@@ -72,7 +72,7 @@ export default function MapTab() {
 
       {/* Bottom-right overlay: pill (when favourites exist) + legend side by side */}
       <View
-        style={[styles.bottomRow, { bottom: insets.bottom + 24 }]}
+        style={[styles.bottomRow, { bottom: 12 }]}
         pointerEvents="box-none"
       >
         {hasFavourites && (
