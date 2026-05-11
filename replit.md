@@ -137,7 +137,12 @@ The user wants to review and tweak after every task. Each task ends with a previ
 - T15 Favourites screen + AsyncStorage — COMPLETE
   - Heart button on beach detail screen (hero top-right)
   - Favourites tab: flat list of saved beaches with score badges, region subtitle, empty state
-- T15b Map favourites filter toggle (next task)
+- T15b Map favourites filter toggle — COMPLETE
+  - "My spots" pill (top-left, below status bar) appears only when ≥1 beach is saved
+  - Pill inactive: cream card with orange outline heart + "My spots" label
+  - Pill active: solid orange with white heart + label
+  - Toggles via injectJavaScript → window.filterBeaches(ids) in the Leaflet WebView
+  - Markers stored in window.MARKERS by beach ID; show/hide without reloading the map
 - T16 Settings screen (units, about, credits)
 - T17 Offline cache with stale-data indicator
 

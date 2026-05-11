@@ -103,19 +103,6 @@ router.get("/map", async (req, res, next) => {
     .popup-score{font-size:13px;color:#666}
     .popup-hint{font-size:11px;color:#E36322;margin-top:6px;cursor:pointer;font-weight:600}
 
-    .legend{
-      position:fixed;bottom:24px;right:12px;
-      background:rgba(250,247,242,.96);border-radius:12px;
-      padding:10px 14px;z-index:1000;
-      font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-      font-size:12px;color:#333;
-      box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none;
-      display:none;
-    }
-    .legend-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-    .legend-row:last-child{margin-bottom:0}
-    .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-
     .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
     .leaflet-popup-content{margin:12px 14px}
     .leaflet-popup-tip-container{display:none}
@@ -133,12 +120,6 @@ router.get("/map", async (req, res, next) => {
     <div class="emsg" id="error-msg"></div>
   </div>
   <div id="map"></div>
-  <div class="legend" id="legend">
-    <div class="legend-row"><div class="legend-dot" style="background:#E36322"></div>Epic</div>
-    <div class="legend-row"><div class="legend-dot" style="background:#1F8A8A"></div>Good</div>
-    <div class="legend-row"><div class="legend-dot" style="background:#C4921B"></div>Fair</div>
-    <div class="legend-row"><div class="legend-dot" style="background:#8E8E8E"></div>Poor</div>
-  </div>
 
   <!-- Beach data as non-executable JSON data block — never blocked by CSP -->
   <script type="application/json" id="beach-data">${beachesJson}</script>
