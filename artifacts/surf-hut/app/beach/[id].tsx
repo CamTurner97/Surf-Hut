@@ -16,6 +16,8 @@ import { useColors } from "@/hooks/useColors";
 import { useBeaches } from "@/hooks/useBeaches";
 import { useBeachReport } from "@/hooks/useBeachReport";
 import { useFavourites } from "@/hooks/useFavourites";
+import { useUnits } from "@/hooks/useUnits";
+import { formatWaveHeight, formatWindSpeed, formatTemperature } from "@/utils/format";
 import { HeartOutlineIcon, HeartFilledIcon } from "@/components/TabIcons";
 import type { SurfReport } from "@workspace/api-client-react";
 
@@ -134,36 +136,22 @@ function ScoreSection({
 
 function ConditionsGrid({ report }: { report: SurfReport }) {
   const colors = useColors();
+  const { units } = useUnits();
+
+  const waveH = formatWaveHeight(report.waveHeightM, units.waveHeight);
+  const windS = formatWindSpeed(report.windSpeedKmh, units.windSpeed);
 
   const stats: Array<{ label: string; value: string; unit?: string }> = [
-    {
-      label: "Wave Height",
-      value: report.waveHeightM.toFixed(1),
-      unit: "m",
-    },
-    {
-      label: "Wave Period",
-      value: report.wavePeriodS.toFixed(0),
-      unit: "s",
-    },
-    {
-      label: "Wind Speed",
-      value: report.windSpeedKmh.toFixed(0),
-      unit: "km/h",
-    },
-    {
-      label: "Wind From",
-      value: degToCompass(report.windDirectionDeg),
-    },
-    {
-      label: "Swell From",
-      value: degToCompass(report.waveDirectionDeg),
-    },
+    { label: "Wave Height", value: waveH.value, unit: waveH.unit },
+    { label: "Wave Period", value: report.wavePeriodS.toFixed(0), unit: "s" },
+    { label: "Wind Speed", value: windS.value, unit: windS.unit },
+    { label: "Wind From", value: degToCompass(report.windDirectionDeg) },
+    { label: "Swell From", value: degToCompass(report.waveDirectionDeg) },
     ...(report.airTemperatureC != null
-      ? [{ label: "Air Temp", value: report.airTemperatureC.toFixed(0), unit: "°C" }]
+      ? [{ ...formatTemperature(report.airTemperatureC, units.temperature), label: "Air Temp" }]
       : []),
     ...(report.waterTemperatureC != null
-      ? [{ label: "Water Temp", value: report.waterTemperatureC.toFixed(0), unit: "°C" }]
+      ? [{ ...formatTemperature(report.waterTemperatureC, units.temperature), label: "Water Temp" }]
       : []),
     ...(report.seaLevelM != null
       ? [{ label: "Sea Level", value: report.seaLevelM.toFixed(2), unit: "m" }]

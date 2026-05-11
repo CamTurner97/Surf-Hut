@@ -143,7 +143,10 @@ The user wants to review and tweak after every task. Each task ends with a previ
   - Pill active: solid orange with white heart + label
   - Toggles via injectJavaScript → window.filterBeaches(ids) in the Leaflet WebView
   - Markers stored in window.MARKERS by beach ID; show/hide without reloading the map
-- T16 Settings screen (units, about, credits)
+- T16 Settings screen (units, about, credits) — COMPLETE
+  - UnitsProvider context (AsyncStorage) for wave height, wind speed, temperature — shared across all screens
+  - Settings screen: Units section (Metres/Feet, km/h/mph, °C/°F), App (haptics toggle), About (tagline + score explainer), Credits (Open-Meteo, OpenStreetMap, Expo)
+  - Beach detail ConditionsGrid reads from useUnits and formats values via utils/format.ts
 - T17 Offline cache with stale-data indicator
 
 ### Phase 4 — Polish & Ship
