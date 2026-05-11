@@ -92,7 +92,6 @@ function makeInjectedJs(leafletUrl: string): string {
         .setView([-33.86,151.21],11);
       window.MAP=map;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
-      L.control.zoom({position:"topright"}).addTo(map);
 
       BEACHES.forEach(function(b){
         var color=pinColor(b.label);
@@ -121,9 +120,7 @@ function makeInjectedJs(leafletUrl: string): string {
       });
 
       var loadEl=document.getElementById("loading");
-      var legEl=document.getElementById("legend");
       if(loadEl)loadEl.style.display="none";
-      if(legEl)legEl.style.display="block";
       pm({type:"map_ready",pins:BEACHES.length});
 
     }catch(e){

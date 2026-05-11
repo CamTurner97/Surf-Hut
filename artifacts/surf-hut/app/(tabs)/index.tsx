@@ -10,6 +10,29 @@ import { HeartFilledIcon, HeartOutlineIcon } from "@/components/TabIcons";
 import { SydneyMap } from "@/components/map/SydneyMap";
 import type { Beach } from "@workspace/api-client-react";
 
+const LEGEND_ITEMS = [
+  { label: "Epic", color: "#E36322" },
+  { label: "Good", color: "#1F8A8A" },
+  { label: "Fair", color: "#C4921B" },
+  { label: "Poor", color: "#8E8E8E" },
+];
+
+function MapLegend() {
+  const colors = useColors();
+  return (
+    <View style={[styles.legendBox, { backgroundColor: colors.card }]}>
+      {LEGEND_ITEMS.map(({ label, color }) => (
+        <View key={label} style={styles.legendRow}>
+          <View style={[styles.legendDot, { backgroundColor: color }]} />
+          <Text style={[styles.legendLabel, { color: colors.foreground }]}>
+            {label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function MapTab() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -31,13 +54,12 @@ export default function MapTab() {
   }
 
   const beaches: Beach[] = data?.beaches ?? [];
+  const hasFavourites = favouriteIds.length > 0;
+  const filterIds = showFavsOnly ? favouriteIds : null;
 
   function handleBeachPress(beach: Beach) {
     router.push({ pathname: "/beach/[id]", params: { id: beach.id } });
   }
-
-  const hasFavourites = favouriteIds.length > 0;
-  const filterIds = showFavsOnly ? favouriteIds : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -48,19 +70,18 @@ export default function MapTab() {
         filterIds={filterIds}
       />
 
-      {hasFavourites && (
-        <View
-          style={[styles.pillWrapper, { top: insets.top + 12 }]}
-          pointerEvents="box-none"
-        >
+      {/* Bottom-right overlay: pill (when favourites exist) + legend side by side */}
+      <View
+        style={[styles.bottomRow, { bottom: insets.bottom + 24 }]}
+        pointerEvents="box-none"
+      >
+        {hasFavourites && (
           <Pressable
             onPress={() => setShowFavsOnly((v) => !v)}
             style={({ pressed }) => [
               styles.pill,
               {
-                backgroundColor: showFavsOnly
-                  ? colors.primary
-                  : colors.card,
+                backgroundColor: showFavsOnly ? colors.primary : colors.card,
                 borderColor: showFavsOnly ? colors.primary : colors.border,
                 opacity: pressed ? 0.75 : 1,
               },
@@ -80,8 +101,9 @@ export default function MapTab() {
               My spots
             </Text>
           </Pressable>
-        </View>
-      )}
+        )}
+        <MapLegend />
+      </View>
     </View>
   );
 }
@@ -105,17 +127,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
   },
-  pillWrapper: {
+
+  bottomRow: {
     position: "absolute",
-    left: 16,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
   },
+
   pill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingVertical: 8,
+    borderRadius: 12,
     borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -125,6 +152,32 @@ const styles = StyleSheet.create({
   },
   pillLabel: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
+    fontSize: 12,
+  },
+
+  legendBox: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  legendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  legendDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+  legendLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
   },
 });
